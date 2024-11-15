@@ -1,11 +1,8 @@
-# -*- coding: utf8 -*-
-
 import torch.cuda as cuda
 import torch.nn as nn
 import torch
-import collections
-from torch.nn.parallel._functions import Gather
-
+import collections.abc  # Update to collections.abc
+from torch.nn.parallel import gather  # Import gather directly from torch.nn.parallel
 
 __all__ = ['UserScatteredDataParallel', 'user_scattered_collate', 'async_copy_to']
 
@@ -16,9 +13,9 @@ def async_copy_to(obj, dev, main_stream=None):
         if main_stream is not None:
             v.data.record_stream(main_stream)
         return v
-    elif isinstance(obj, collections.Mapping):
+    elif isinstance(obj, collections.abc.Mapping):  # Use collections.abc.Mapping
         return {k: async_copy_to(o, dev, main_stream) for k, o in obj.items()}
-    elif isinstance(obj, collections.Sequence):
+    elif isinstance(obj, collections.abc.Sequence):  # Use collections.abc.Sequence
         return [async_copy_to(o, dev, main_stream) for o in obj]
     else:
         return obj
@@ -32,15 +29,15 @@ def dict_gather(outputs, target_device, dim=0):
     def gather_map(outputs):
         out = outputs[0]
         if torch.is_tensor(out):
-            # MJY(20180330) HACK:: force nr_dims > 0
+            # Ensure non-zero dimensions
             if out.dim() == 0:
                 outputs = [o.unsqueeze(0) for o in outputs]
-            return Gather.apply(target_device, dim, *outputs)
+            return gather(outputs, target_device, dim=dim)  # Use gather from torch.nn.parallel
         elif out is None:
             return None
-        elif isinstance(out, collections.Mapping):
+        elif isinstance(out, collections.abc.Mapping):
             return {k: gather_map([o[k] for o in outputs]) for k in out}
-        elif isinstance(out, collections.Sequence):
+        elif isinstance(out, collections.abc.Sequence):
             return type(out)(map(gather_map, zip(*outputs)))
     return gather_map(outputs)
 
@@ -108,5 +105,6 @@ def _get_stream(device):
         return None
     if _streams is None:
         _streams = [None] * cuda.device_count()
-    if _streams[device] is None: _streams[device] = cuda.Stream(device)
+    if _streams[device] is None:
+        _streams[device] = cuda.Stream(device=device)  # Specify device explicitly
     return _streams[device]

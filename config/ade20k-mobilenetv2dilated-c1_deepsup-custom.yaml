@@ -1,10 +1,10 @@
 DATASET:
   root_dataset: "./data/"
-  list_train: "./data/training.odgt"
+  list_train: "./data/Carla1_training.odgt"
   list_val: "./data/validation.odgt"
-  num_class: 150
-  imgSizes: (300, 375, 450, 525, 600)
-  imgMaxSize: 1000
+  num_class: 29
+  imgSizes: (500, 600, 700)
+  imgMaxSize: 800
   padding_constant: 8
   segm_downsampling_rate: 8
   random_flip: True
@@ -39,4 +39,4 @@ TEST:
   checkpoint: "epoch_20.pth"
   result: "./"
 
-DIR: "ckpt/ade20k-mobilenetv2dilated-c1_deepsup"
+DIR: "ckpt/ade20k-mobilenetv2dilated-c1_deepsup-customCarla1"
