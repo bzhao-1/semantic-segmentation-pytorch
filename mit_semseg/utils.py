@@ -115,8 +115,8 @@ def colorEncode(labelmap, colors, mode='RGB'):
     for label in unique(labelmap):
         if label < 0:
             continue
-        labelmap_rgb += (labelmap == label)[:, :, np.newaxis] * \
-            np.tile(colors[label],
+        labelmap_rgb += (labelmap == label).astype(np.uint8)[:, :, np.newaxis] * \
+            np.tile(colors[label].astype(np.uint8),
                     (labelmap.shape[0], labelmap.shape[1], 1))
 
     if mode == 'BGR':

@@ -2,7 +2,7 @@ DATASET:
   root_dataset: "/Data/toledod/collectedData/trafficPath"
   list_train: "/Data/toledod/collectedData/trafficPath/odgt_BZ/train.odgt"
   list_val: "/Data/toledod/collectedData/trafficPath/odgt_BZ/validate.odgt"
-  num_class: 23
+  num_class: 28
   imgSizes: (500, 600, 700)
   imgMaxSize: 800
   padding_constant: 8
@@ -39,4 +39,4 @@ TEST:
   checkpoint: "epoch_20.pth"
   result: "./"
 
-DIR: "ckpt/ade20k-mobilenetv2dilated-c1_deepsup-customCarla1"
+DIR: "ckpt/ade20k-mobilenetv2dilated-c1_deepsup-customCarla2"
