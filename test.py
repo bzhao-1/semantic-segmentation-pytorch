@@ -385,7 +385,7 @@ from PIL import Image
 from tqdm import tqdm
 from mit_semseg.config import cfg
 
-colors = loadmat('data/color_23.mat')['colors']
+colors = loadmat('data/color_29.mat')['colors']
 names = {}
 with open('data/object150_info.csv') as f:
     reader = csv.reader(f)

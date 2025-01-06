@@ -2,7 +2,7 @@ DATASET:
   root_dataset: "/Data/toledod/collectedData/trafficPath"
   list_train: "/Data/toledod/collectedData/trafficPath/odgt_BZ/train.odgt"
   list_val: "/Data/toledod/collectedData/trafficPath/odgt_BZ/validate.odgt"
-  num_class: 23
+  num_class: 29
   imgSizes: (500, 600, 700)
   imgMaxSize: 800
   padding_constant: 8
@@ -10,13 +10,13 @@ DATASET:
   random_flip: True
 
 MODEL:
-  arch_encoder: "mobilenetv2dilated"
-  arch_decoder: "c1_deepsup"
-  fc_dim: 320
+  arch_encoder: "resnet50"
+  arch_decoder: "upernet"
+  fc_dim: 2048
 
 TRAIN:
-  batch_size_per_gpu: 3
-  num_epoch: 20
+  batch_size_per_gpu: 2
+  num_epoch: 30
   start_epoch: 0
   epoch_iters: 5000
   optim: "SGD"
@@ -32,11 +32,11 @@ TRAIN:
   seed: 304
 
 VAL:
-  visualize: True 
-  checkpoint: "epoch_20.pth"
+  visualize: False
+  checkpoint: "epoch_30.pth"
 
 TEST:
-  checkpoint: "epoch_20.pth"
+  checkpoint: "epoch_30.pth"
   result: "./"
 
-DIR: "ckpt/ade20k-mobilenetv2dilated-c1_deepsup-customCarla1"
+DIR: "ckpt/ade20k-resnet50-upernet"
