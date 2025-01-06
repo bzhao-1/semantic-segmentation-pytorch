@@ -1,0 +1,212 @@
+    1  ls
+    2  cd ../../Carla/CARLA_0.9.15
+    3  ls
+    4  source cenv.3.8/bin/activate
+    5  python --version
+    6  python3 --version
+    7  pip freeze
+    8  pip install carla
+    9  cd PythonAPI/experiments
+   10  cd PythonAPI/examples/
+   11  python3 -m pip -r install requirements.txt
+   12  python3 -m pip install requirements.txt
+   13  python3 -m pip -r install requirements.txt
+   14  python3 -m pip install -r requirements.txt
+   15  ls
+   16  python generate_traffic.py
+   17  python3 generate_traffic.py 
+   18  pip freeze
+   19  python3 generate_traffic.py 
+   20  ls
+   21  python3 vehicle_gallery.py 
+   22  python3 visualize_multiple_sensors.py
+   23  python3 lidar_to_camera.py 
+   24  ls
+   25  python3 manual_control_carsim.py 
+   26  cd ..
+   27  ./CarlaUE4.sh -prefernvidia
+   28  ./CarlaUE4.sh
+   29  source cenv.3.8/bin/activate
+   30  ./CarlaUE4.sh
+   31  pip list
+   32  ./CarlaUE4.sh -prefernvidia
+   33  source cenv.3.8/bin/activate
+   34  cd PythonAPI/examples/
+   35  python generate_traffic.py 
+   36  python3 generate_traffic.py 
+   37  where carla
+   38  pip freeze
+   39  python3 generate_traffic.py 
+   40  python3 --version
+   41  python --version
+   42  python3
+   43  python3 -m pip freeze
+   44  python3 -m pip install carla
+   45  python3 generate_traffic.py 
+   46  ls
+   47  python3 tutorial
+   48  python3 tutorial.py
+   49  ls
+   50  python3 dynamic_weather.py 
+   51  python3 generate_traffic.py 
+   52  source cenv.3.8/bin/activate
+   53  ls
+   54  python3 manual_control_carsim.py
+   55  source cenv.3.8/bin/activate
+   56  ls
+   57  python3 synchronous_mode.py 
+   58  cd ..
+   59  source cenv.3.8/bin/activate
+   60  cd ..
+   61  source cenv.3.8/bin/activate
+   62  cd PythonAPI/examples/
+   63  python3 synchronous_mode.py 
+   64  passwd
+   65  cd ../../Carla/CARLA_0.9.15/
+   66  ls
+   67  source cenv.3.8/bin/activate
+   68  ls
+   69  ./CarlaUE4.sh -prefernvidia
+   70  source cenv.3.8/bin/activate
+   71  python3 generate_traffic.py 
+   72  cd PythonAPI/examples/
+   73  python3 generate_traffic.py 
+   74  python3 dynamic_weather.py 
+   75  cd Desktop
+   76  mkdir CARLA_SCRIPTS
+   77  cd CARLA_SCRIPTS/
+   78  source cenv.3.8/bin/activate
+   79  cd
+   80  source cenv.3.8/bin/activate
+   81  cd Desktop/CARLA_SCRIPTS/
+   82  ls
+   83  cd examples/
+   84  ls
+   85  python3 tutorial.py
+   86  python3 synchronous_mode.py 
+   87  cd ..
+   88  ls
+   89  python3 synchronous_mode_rawsemseg.py 
+   90  cd
+   91  cd ../../Carla/CARLA_0.9.15
+   92  source cenv.3.8/bin/activate
+   93  ./CARLAUE4.sh -prefernvidia
+   94  ./CarlaUE4.sh -prefernvidia
+   95  ./CARLAUE4.sh -prefernvidia
+   96  ./CarlaUE4.sh -prefernvidia
+   97  ls
+   98  cd Desktop
+   99  git clone https://github.com/CSAILVision/semantic-segmentation-pytorch.git
+  100  cd semantic-segmentation-pytorch/
+  101  pip3 install torch torchvision torchaudio
+  102  chmod +x demo_test.sh
+  103  ./demo_test.sh
+  104  pip3 isntall _bz2
+  105  pip3 install _bz2
+  106  sudo apt-get install libbz2-dev
+  107  pip3 install bz2
+  108  python -c "import bz2; print('bz2 available')"
+  109  python3 -c "import bz2; print('bz2 available')"
+  110  sudo yum install bzip2-devel
+  111  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+  112  bash Miniconda3-latest-Linux-x86_64.sh
+  113  A
+  114  quit()
+  115  python3 --version
+  116  conda create -n myenv python=3.12.7
+  117  conda activate myenv
+  118  python -c "import bz2; print('bz2 available')"
+  119  cd semantic-segmentation-pytorch/
+  120  chmod +x demo_test.sh
+  121  ./demo_test.sh
+  122  pip3 install numpy
+  123  ./demo_test.sh
+  124  conda install pytorch torchvision torchaudio -c pytorch
+  125  ./demo_test.sh
+  126  python -c "import torch; print(torch.__version__)"
+  127  pip3 install torch
+  128  ./demo_test.sh
+  129  pip3 install scipy
+  130  pip3 install opencv
+  131  pip3 install yacs
+  132  pip3 install tqdm
+  133  ./demo_test.sh
+  134  pip3 install torchvision
+  135  pip3 install pytorch
+  136  ./demo_test.sh
+  137  chmod +x demo_test.sh
+  138  ./demo_test.sh
+  139  chmod +x demo_test.sh
+  140  ./demo_test.sh
+  141  chmod +x download_ADE20K.sh
+  142  ./download_ADE20K.sh
+  143  clear
+  144  python3 train.py --gpus GPUS --cfg config/ade20k-mobilenetv2dilated-c1_deepsup.yaml
+  145  python3 train.py --gpus 0 --cfg config/ade20k-mobilenetv2dilated-c1_deepsup.yaml
+  146  python3 train.py --gpus 0 --cfg config/ade20k-mobilenetv2dilated-ppm_deepsup.yaml 
+  147  python3 train.py --gpus 0 --cfg config/ade20k-mobilenetv2dilated-c1_deepsup.yaml
+  148  conda activate myenv
+  149  cd semantic-segmentation-pytorch/
+  150  python3 -u test.py --imgs testrandomimages/Ben&Maddie.png --gpu 0 --cfg config/ade20k-mobilenetv2dilated-c1_deepsup.yaml
+  151  python3 -u test.py --imgs testrandomimages/test1.png --gpu 0 --cfg config/ade20k-mobilenetv2dilated-c1_deepsup.yaml
+  152  conda activate myenv
+  153  cd semantic-segmentation-pytorch/
+  154  ls
+  155  python3 -u test.py --imgs testrandomimages/ --gpu 0 --cfg config/ade20k-mobilenetv2dilated-c1_deepsup.yaml
+  156  python3 train.py --gpus 0 --cfg config/ade20k-resnet101-upernet.yaml
+  157  screen
+  158  screen -s
+  159  sreen -S test
+  160  cd
+  161  screen -S stest
+  162* 
+  163  screen
+  164  screen -list
+  165  screen -X -S 682945 kill 
+  166  screen -list
+  167  screen -X -S 682945 kill
+  168  screen
+  169  screen -list
+  170  screen -wipe
+  171  screen -list
+  172  pkill screen
+  173  screen
+  174  conda activate myenv
+  175  clear
+  176  screen
+  177  conda activate myenv
+  178  python3 train.py --gpus 0 --cfg config/ade20k-resnet101
+  179  python3 train.py --gpus 0 --cfg config/ade20k-resnet101-upernet.yaml
+  180  cd semantic-segmentation-pytorch/
+  181  python3 train.py --gpus 0 --cfg config/ade20k-resnet101-upernet.yaml
+  182  ls
+  183  cd ckpt
+  184  ls
+  185  rm -r ade20k-resnet101-upernet
+  186  ls
+  187  python3 train.py --gpus 0 --cfg config/ade20k-resnet101-upernet
+  188  cd ..
+  189  python3 train.py --gpus 0 --cfg config/ade20k-resnet101-upernet
+  190  ls
+  191  cd config
+  192  ls
+  193  vim ade20k-resnet101-upernet.yaml
+  194  apt install vim
+  195  pip3 install vim
+  196  touch ade20k-resnet101-upernet.yaml
+  197  nano ade20k-resnet101-upernet.yaml
+  198  ls
+  199  cd ..
+  200  python3 train.py --gpus 0 --cfg config/ade20k-resnet101-upernet
+  201* 
+  202  ls
+  203  clear
+  204* python3 test.py --imgs testrandomimages/ --gpus 0 --cfg config/ade20k-resnet101-upernet.yaml
+  205  cd ..
+  206  python3 train.py --gpus 0 --cfg config/ade20k-resnet101-upernet.yaml
+  207  nvidia-smi
+  208  python3 -u test.py --imgs testrandomimages/ --gpu 0 --cfg config/ade20k-resnet101-upernet.yaml
+  209  python3 train.py --gpus 0 --cfg config/ade20k-resnet101-upernet
+  210  python3 train.py --gpus 0 --cfg config/ade20k-resnet101-upernet.yaml
+  211  python3 -u test.py --imgs testrandomimages/ --gpu 0 --cfg config/ade20k-resnet101-upernet.yaml
+  212  history > history.txt
