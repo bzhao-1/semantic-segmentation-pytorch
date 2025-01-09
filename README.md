@@ -1,7 +1,7 @@
 # Semantic Segmentation on CARLA Data
 # Adapted from MIT ADE20K dataset in PyTorch
 
-This is a PyTorch implementation of semantic segmentation models on MIT ADE20K scene parsing dataset (http://sceneparsing.csail.mit.edu/).
+This is a PyTorch implementation of semantic segmentation models on custom data from the CARLA simulator. The implementation is adapted from the MIT ADE20K scene parsing dataset (http://sceneparsing.csail.mit.edu/).
 
 
 ## Background of MIT ADE20K
