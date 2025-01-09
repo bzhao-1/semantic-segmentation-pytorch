@@ -20,22 +20,20 @@ This module computes the mean and standard-deviation across all devices during t
 - **HRNet** is a recently proposed model that retains high resolution representations throughout the model, without the traditional bottleneck design. It achieves the SOTA performance on a series of pixel labeling tasks. Please refer to [https://arxiv.org/abs/1904.04514](https://arxiv.org/abs/1904.04514) for details.
 
 
-## Supported models
-We split our models into encoder and decoder, where encoders are usually modified directly from classification networks, and decoders consist of final convolutions and upsampling. We have provided some pre-configured models in the ```config``` folder.
+## Models
+
+We trained the model on CARLA data with a MobileNetV2dilated encoder. This was adpated from the pretrained models provided in the ADE20K paper. 
 
 Encoder:
 - MobileNetV2dilated
-- ResNet18/ResNet18dilated
-- ResNet50/ResNet50dilated
-- ResNet101/ResNet101dilated
-- HRNetV2 (W48)
 
-Decoder:
+
+Decoders:
 - C1 (one convolution module)
 - C1_deepsup (C1 + deep supervision trick)
 - PPM (Pyramid Pooling Module, see [PSPNet](https://hszhao.github.io/projects/pspnet) paper for details.)
 - PPM_deepsup (PPM + deep supervision trick)
-- UPerNet (Pyramid Pooling + FPN head, see [UperNet](https://arxiv.org/abs/1807.10221) for details.)
+
 
 
 
