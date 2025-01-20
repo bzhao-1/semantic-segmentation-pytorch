@@ -134,7 +134,7 @@ def main(cfg, gpu):
         cfg.DATASET)
     
     loader_val = torch.utils.data.DataLoader(
-        dataset_val,
+        dataset_test,
         batch_size=cfg.VAL.batch_size,
         shuffle=False,
         collate_fn=user_scattered_collate,
