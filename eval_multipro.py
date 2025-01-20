@@ -85,17 +85,30 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue):
     torch.cuda.set_device(gpu_id)
 
     # Dataset and Loader
-    dataset_val = ValDataset(
+    # dataset_val = ValDataset(
+    #     cfg.DATASET.root_dataset,
+    #     cfg.DATASET.list_val,
+    #     cfg.DATASET,
+    #     start_idx=start_idx, end_idx=end_idx)
+    # loader_val = torch.utils.data.DataLoader(
+    #     dataset_val,
+    #     batch_size=cfg.VAL.batch_size,
+    #     shuffle=False,
+    #     collate_fn=user_scattered_collate,
+    #     num_workers=2)
+    
+    dataset_test = ValDataset(
         cfg.DATASET.root_dataset,
-        cfg.DATASET.list_val,
-        cfg.DATASET,
-        start_idx=start_idx, end_idx=end_idx)
+        cfg.DATASET.list_test,
+        cfg.DATASET)
+    
     loader_val = torch.utils.data.DataLoader(
-        dataset_val,
+        dataset_test,
         batch_size=cfg.VAL.batch_size,
         shuffle=False,
         collate_fn=user_scattered_collate,
-        num_workers=2)
+        num_workers=5,
+        drop_last=True)
 
     # Network Builders
     net_encoder = ModelBuilder.build_encoder(
