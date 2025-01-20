@@ -90,25 +90,22 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue):
     #     cfg.DATASET.list_val,
     #     cfg.DATASET,
     #     start_idx=start_idx, end_idx=end_idx)
-    # loader_val = torch.utils.data.DataLoader(
-    #     dataset_val,
-    #     batch_size=cfg.VAL.batch_size,
-    #     shuffle=False,
-    #     collate_fn=user_scattered_collate,
-    #     num_workers=2)
     
     dataset_test = ValDataset(
         cfg.DATASET.root_dataset,
         cfg.DATASET.list_test,
-        cfg.DATASET)
+        cfg.DATASET,
+        start_idx=start_idx, end_idx=end_idx)
     
     loader_val = torch.utils.data.DataLoader(
         dataset_test,
         batch_size=cfg.VAL.batch_size,
         shuffle=False,
         collate_fn=user_scattered_collate,
-        num_workers=5,
-        drop_last=True)
+        num_workers=2)
+
+    
+    
 
     # Network Builders
     net_encoder = ModelBuilder.build_encoder(
