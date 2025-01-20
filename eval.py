@@ -124,10 +124,15 @@ def main(cfg, gpu):
     segmentation_module = SegmentationModule(net_encoder, net_decoder, crit)
 
     # Dataset and Loader
-    dataset_val = ValDataset(
+    # dataset_val = ValDataset(
+    #     cfg.DATASET.root_dataset,
+    #     cfg.DATASET.list_val,
+    #     cfg.DATASET)
+    dataset_test = ValDataset(
         cfg.DATASET.root_dataset,
-        cfg.DATASET.list_val,
+        cfg.DATASET.list_test,
         cfg.DATASET)
+    
     loader_val = torch.utils.data.DataLoader(
         dataset_val,
         batch_size=cfg.VAL.batch_size,

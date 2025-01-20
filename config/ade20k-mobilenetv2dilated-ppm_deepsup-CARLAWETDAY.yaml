@@ -2,6 +2,7 @@ DATASET:
   root_dataset: "/Data/1_17_clear_wet_day"
   list_train: "/Data/1_17_clear_wet_day/odgt/train.odgt"
   list_val: "/Data/1_17_clear_wet_day/odgt/validate.odgt"
+  list_test: "/Data/1_17_clear_wet_day/odgt/test.odgt"
   num_class: 29
   imgSizes: (360, 540, 720)  # Smaller sizes
   imgMaxSize: 960
