@@ -1,6 +1,5 @@
 *.pyc
 
-ckpt/
 vis/
 log/
 MITdata/
@@ -10,6 +9,7 @@ pretrained/
 *.jpg
 .ipynb_checkpoints
 
+ckpt/
 ADE_val*.jpg
 ADE_val*.png
 raw*.png
