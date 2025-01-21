@@ -41,6 +41,10 @@ def visualize_result(data, pred, dir_result):
 
 def evaluate(segmentation_module, loader, cfg, gpu_id, result_queue):
     segmentation_module.eval()
+    full_dir_name = os.path.basename(os.path.dirname(os.path.dirname(cfg.DATASET.list_val)))
+    test_set_name = '_'.join(full_dir_name.split('_')[2:])
+    result_dir = os.path.join(cfg.DIR, f'results_{test_set_name}')
+    os.makedirs(result_dir, exist_ok=True)
 
     for batch_data in loader:
         # process data
@@ -77,7 +81,7 @@ def evaluate(segmentation_module, loader, cfg, gpu_id, result_queue):
             visualize_result(
                 (batch_data['img_ori'], seg_label, batch_data['info']),
                 pred,
-                os.path.join(cfg.DIR, 'result')
+                result_dir
             )
 
 
@@ -85,20 +89,20 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue):
     torch.cuda.set_device(gpu_id)
 
     # Dataset and Loader
-    # dataset_val = ValDataset(
-    #     cfg.DATASET.root_dataset,
-    #     cfg.DATASET.list_val,
-    #     cfg.DATASET,
-    #     start_idx=start_idx, end_idx=end_idx)
-    
-    dataset_test = ValDataset(
+    dataset_val = ValDataset(
         cfg.DATASET.root_dataset,
-        cfg.DATASET.list_test,
+        cfg.DATASET.list_val,
         cfg.DATASET,
         start_idx=start_idx, end_idx=end_idx)
     
+    # dataset_test = ValDataset(
+    #     cfg.DATASET.root_dataset,
+    #     cfg.DATASET.list_test,
+    #     cfg.DATASET,
+    #     start_idx=start_idx, end_idx=end_idx)
+    
     loader_val = torch.utils.data.DataLoader(
-        dataset_test,
+        dataset_val,
         batch_size=cfg.VAL.batch_size,
         shuffle=False,
         collate_fn=user_scattered_collate,
@@ -118,6 +122,7 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue):
         num_class=cfg.DATASET.num_class,
         weights=cfg.MODEL.weights_decoder,
         use_softmax=True)
+    
 
     crit = nn.NLLLoss(ignore_index=-1)
 
