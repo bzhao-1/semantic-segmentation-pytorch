@@ -10,6 +10,7 @@ pretrained/
 .ipynb_checkpoints
 
 ckpt/
+ckpt_link/
 ADE_val*.jpg
 ADE_val*.png
 raw*.png
