@@ -2,7 +2,6 @@ DATASET:
   root_dataset: "/Data/1_17_clear_sunset"
   list_train: "/Data/1_17_clear_sunset/odgt/train.odgt"
   list_val: "/Data/1_17_clear_sunset/odgt/validate.odgt"
-  # list_test: "/Data/1_17_clear_sunset/odgt/test.odgt"
   num_class: 29
   imgSizes: (360, 540, 720)  # Smaller sizes
   imgMaxSize: 960
@@ -18,7 +17,7 @@ MODEL:
 TRAIN:
   batch_size_per_gpu: 2
   num_epoch: 20
-  start_epoch: 10
+  start_epoch: 0
   epoch_iters: 5000
   optim: "SGD"
   lr_encoder: 0.02
@@ -40,4 +39,4 @@ TEST:
   checkpoint: "epoch_20.pth"
   result: "./"
 
-DIR: "ckpt/ade20k-mobilenetv2dilated-ppm_deepsup-CARLASUNSETCLEAR"
+DIR: "ckpt_link/ade20k-mobilenetv2dilated-ppm_deepsup-CARLASUNSETCLEAR"

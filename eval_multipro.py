@@ -41,10 +41,13 @@ def visualize_result(data, pred, dir_result):
 
 def evaluate(segmentation_module, loader, cfg, gpu_id, result_queue):
     segmentation_module.eval()
-    full_dir_name = os.path.basename(os.path.dirname(os.path.dirname(cfg.DATASET.list_val)))
-    test_set_name = '_'.join(full_dir_name.split('_')[2:])
-    result_dir = os.path.join(cfg.DIR, f'results_{test_set_name}')
-    os.makedirs(result_dir, exist_ok=True)
+    # full_dir_name = os.path.basename(os.path.dirname(os.path.dirname(cfg.DATASET.list_val)))
+    # test_set_name = '_'.join(full_dir_name.split('_')[2:])
+    # result_dir = os.path.join(cfg.DIR, f'results_{test_set_name}')
+    # os.makedirs(result_dir, exist_ok=True)
+    result_dir = os.path.join("results", f"{cfg.DIR.split('/')[-1]}_{loader.dataset.root_dataset.split('/')[-1]}")
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
 
     for batch_data in loader:
         # process data
@@ -85,15 +88,25 @@ def evaluate(segmentation_module, loader, cfg, gpu_id, result_queue):
             )
 
 
-def worker(cfg, gpu_id, start_idx, end_idx, result_queue):
+def worker(cfg, gpu_id, start_idx, end_idx, result_queue, test_set):
     torch.cuda.set_device(gpu_id)
 
-    # Dataset and Loader
-    dataset_val = ValDataset(
-        cfg.DATASET.root_dataset,
-        cfg.DATASET.list_val,
-        cfg.DATASET,
-        start_idx=start_idx, end_idx=end_idx)
+    if not test_set:
+        # Dataset and Loader
+        dataset_val = ValDataset(
+            cfg.DATASET.root_dataset,
+            cfg.DATASET.list_val,
+            cfg.DATASET,
+            start_idx=start_idx, end_idx=end_idx)
+    else:   
+        print(f"Evaluating {cfg.DIR.split('/')[-1]} on {test_set}")
+        root_dataset = test_set
+        list_val = os.path.join(test_set, "odgt", "test.odgt")
+        dataset_val = ValDataset(
+            root_dataset,
+            list_val,
+            cfg.DATASET,
+            start_idx=start_idx, end_idx=end_idx)
     
     # dataset_test = ValDataset(
     #     cfg.DATASET.root_dataset,
@@ -134,7 +147,7 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue):
     evaluate(segmentation_module, loader_val, cfg, gpu_id, result_queue)
 
 
-def main(cfg, gpus):
+def main(cfg, gpus, test_set):
     with open(cfg.DATASET.list_val, 'r') as f:
         lines = f.readlines()
         num_files = len(lines)
@@ -152,7 +165,7 @@ def main(cfg, gpus):
     for idx, gpu_id in enumerate(gpus):
         start_idx = idx * num_files_per_gpu
         end_idx = min(start_idx + num_files_per_gpu, num_files)
-        proc = Process(target=worker, args=(cfg, gpu_id, start_idx, end_idx, result_queue))
+        proc = Process(target=worker, args=(cfg, gpu_id, start_idx, end_idx, result_queue, test_set))
         print('gpu:{}, start_idx:{}, end_idx:{}'.format(gpu_id, start_idx, end_idx))
         proc.start()
         procs.append(proc)
@@ -204,11 +217,17 @@ if __name__ == '__main__':
         help="gpus to use, e.g. 0-3 or 0,1,2,3"
     )
     parser.add_argument(
+        "--test_set",
+        help="Change from none to path to set if you want to evaluate on a set other than the one in the config",
+        default=None,
+    )
+    parser.add_argument(
         "opts",
         help="Modify config options using the command-line",
         default=None,
         nargs=argparse.REMAINDER,
     )
+
     args = parser.parse_args()
 
     cfg.merge_from_file(args.cfg)
@@ -235,4 +254,7 @@ if __name__ == '__main__':
     gpus = [x.replace('gpu', '') for x in gpus]
     gpus = [int(x) for x in gpus]
 
-    main(cfg, gpus)
+    # Parse argument for test set if passed
+    test_set = args.test_set
+
+    main(cfg, gpus, test_set)

@@ -1,8 +1,7 @@
 DATASET:
   root_dataset: "/Data/1_17_clear_wet_day"
   list_train: "/Data/1_17_clear_wet_day/odgt/train.odgt"
-  list_val: "/Data/1_17_clear_wet_day/odgt/test.odgt"
-  # list_test: "/Data/1_17_clear_wet_day/odgt/test.odgt"
+  list_val: "/Data/1_17_clear_wet_day/odgt/validate.odgt"
   num_class: 29
   imgSizes: (360, 540, 720)  # Smaller sizes
   imgMaxSize: 960
@@ -40,4 +39,4 @@ TEST:
   checkpoint: "epoch_20.pth"
   result: "./"
 
-DIR: "ckpt/ade20k-mobilenetv2dilated-ppm_deepsup-CARLAWETDAY"
+DIR: "ckpt_link/ade20k-mobilenetv2dilated-ppm_deepsup-CARLAWETDAY"
