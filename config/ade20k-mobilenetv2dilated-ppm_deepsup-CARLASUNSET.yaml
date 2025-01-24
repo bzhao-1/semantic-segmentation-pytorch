@@ -1,7 +1,7 @@
 DATASET:
   root_dataset: "/Data/1_17_clear_sunset"
   list_train: "/Data/1_17_clear_sunset/odgt/train.odgt"
-  list_val: "/Data/1_17_clear_sunset/odgt/validate.odgt"
+  list_val: "/Data/1_17_clear_sunset/odgt/test.odgt"
   num_class: 29
   imgSizes: (360, 540, 720)  # Smaller sizes
   imgMaxSize: 960
@@ -33,10 +33,10 @@ TRAIN:
 
 VAL:
   visualize: True
-  checkpoint: "epoch_20.pth"
+  checkpoint: "epoch_18.pth"
 
 TEST:
-  checkpoint: "epoch_20.pth"
+  checkpoint: "epoch_18.pth"
   result: "./"
 
 DIR: "ckpt_link/ade20k-mobilenetv2dilated-ppm_deepsup-CARLASUNSETCLEAR"
