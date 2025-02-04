@@ -43,17 +43,18 @@ def evaluate(segmentation_module, loader, cfg, gpu_id, result_queue):
     segmentation_module.eval()
 
     # Create a new folder within the base result directory for the images
-    full_dir_name = os.path.basename(os.path.dirname(os.path.dirname(cfg.DATASET.list_val)))
-    resolved_dir = os.path.realpath(cfg.DIR)
-    weather_type = loader.dataset.root_dataset.split('/')[-1]
-    base_result_dir = os.path.join("/Data/ckpt1", f"{resolved_dir.split('/')[-1]}{weather_type}")
-    if not os.path.exists(base_result_dir):
-        os.makedirs(base_result_dir)
-    test_set_name = '_'.join(full_dir_name.split('_')[2:])
-    result_dir = os.path.join(base_result_dir, f'results_{test_set_name}')
-    if not os.path.exists(result_dir):
-        os.makedirs(result_dir)
-    
+    if cfg.VAL.visualize:
+        full_dir_name = os.path.basename(os.path.dirname(os.path.dirname(cfg.DATASET.list_val)))
+        resolved_dir = os.path.realpath(cfg.DIR)
+        weather_type = loader.dataset.root_dataset.split('/')[-1]
+        base_result_dir = os.path.join("/Data/ckpt1", f"{resolved_dir.split('/')[-1]}{weather_type}")
+        if not os.path.exists(base_result_dir):
+            os.makedirs(base_result_dir)
+        test_set_name = '_'.join(full_dir_name.split('_')[2:])
+        result_dir = os.path.join(base_result_dir, f'results_{test_set_name}')
+        if not os.path.exists(result_dir):
+            os.makedirs(result_dir)
+        
     for batch_data in loader:
         # process data
         batch_data = batch_data[0]

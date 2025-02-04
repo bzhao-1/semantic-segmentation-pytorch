@@ -1,7 +1,7 @@
 DATASET:
-  root_dataset: "./1_17_clear_day"
-  list_train: "./1_17_clear_day/odgt/train.odgt"
-  list_val: "./1_17_clear_day/odgt/test.odgt"
+  root_dataset: "./1_26_newmap_clear_day"
+  list_train: "./1_26_newmap_clear_day/odgt/train.odgt"
+  list_val: "./1_26_newmap_clear_day/odgt/validate.odgt"
   num_class: 29
   imgSizes: (360, 540, 720)  # Smaller sizes
   imgMaxSize: 960
@@ -32,11 +32,11 @@ TRAIN:
   seed: 304
 
 VAL:
-  visualize: False
+  visualize: True
   checkpoint: "epoch_20.pth"
 
 TEST:
   checkpoint: "epoch_20.pth"
   result: "./"
 
-DIR: "ckpt_link/ade20k-mobilenetv2dilated-ppm_deepsup-CARLADAYCLEAR"
+DIR: "ckpt_link/ade20k-mobilenetv2dilated-ppm_deepsup-CARLADAYCLEAR2"
