@@ -28,11 +28,12 @@ class SegmentationModule(SegmentationModuleBase):
 
     def forward(self, feed_dict, *, segSize=None):
         # training
+        features = self.encoder(feed_dict['img_data'], return_feature_maps=True)
         if segSize is None:
             if self.deep_sup_scale is not None: # use deep supervision technique
-                (pred, pred_deepsup) = self.decoder(self.encoder(feed_dict['img_data'], return_feature_maps=True))
+                (pred, pred_deepsup) = self.decoder(features)
             else:
-                pred = self.decoder(self.encoder(feed_dict['img_data'], return_feature_maps=True))
+                pred = self.decoder(features)
 
             loss = self.crit(pred, feed_dict['seg_label'])
             if self.deep_sup_scale is not None:
@@ -572,7 +573,11 @@ class UPerNet(nn.Module):
                 fpn_feature_list[i],
                 output_size,
                 mode='bilinear', align_corners=False))
+        self.channel_expand = nn.Conv2d(512, 2048, kernel_size=1, stride=1, padding=0).cuda()
+        # add a 1x1 conv to expand the channel dimension
         fusion_out = torch.cat(fusion_list, 1)
+        fusion_out = self.channel_expand(fusion_out)
+
         x = self.conv_last(fusion_out)
 
         if self.use_softmax:  # is True during inference
