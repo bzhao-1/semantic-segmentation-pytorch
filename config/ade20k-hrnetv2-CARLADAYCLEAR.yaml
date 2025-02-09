@@ -1,7 +1,7 @@
 DATASET:
-  root_dataset: "./1_17_clear_day"
-  list_train: "./1_17_clear_day/odgt/train.odgt"
-  list_val: "./1_17_clear_day/odgt/validate.odgt"
+  root_dataset: "./new_data"
+  list_train: "./new_data/odgt_clear_day/train.odgt"
+  list_val: "./new_data/odgt_clear_day/validate.odgt"
   num_class: 29
   imgSizes: (360, 540, 720)  # Smaller sizes
   imgMaxSize: 960
@@ -11,7 +11,7 @@ DATASET:
 
 MODEL:
   arch_encoder: "hrnetv2"
-  arch_decoder: "upernet"
+  arch_decoder: "c1"
   fc_dim: 720
 
 TRAIN:
@@ -39,4 +39,4 @@ TEST:
   checkpoint: "epoch_30.pth"
   result: "./"
 
-DIR: "ckpt/ade20k-hrnetv2-c1-CARLADAYCLEAR"
+DIR: "ckpt/ade20k-hrnetv2-upernet-CARLADAYCLEAR"

@@ -1,5 +1,6 @@
 *.pyc
 
+# Data files
 vis/
 log/
 MITdata/
@@ -18,6 +19,7 @@ ADE_val*.jpg
 ADE_val*.png
 raw*.png
 raw*.jpg
+DETERMIN-2-07-25/
 
 .idea/
 
