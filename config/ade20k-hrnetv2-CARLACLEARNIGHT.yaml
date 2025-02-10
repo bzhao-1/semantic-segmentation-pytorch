@@ -1,7 +1,7 @@
 DATASET:
   root_dataset: "./new_data"
-  list_train: "./new_data/odgt_clear_day/train.odgt"
-  list_val: "./new_data/odgt_clear_day/validate.odgt"
+  list_train: "./new_data/odgt_clear_night/train.odgt"
+  list_val: "./new_data/odgt_clear_night/validate.odgt"
   num_class: 29
   imgSizes: (360, 540, 720)  # Smaller sizes
   imgMaxSize: 960
@@ -33,10 +33,10 @@ TRAIN:
 
 VAL:
   visualize: True
-  checkpoint: "epoch_30.pth"
+  checkpoint: "epoch_20.pth"
 
 TEST:
-  checkpoint: "epoch_30.pth"
+  checkpoint: "epoch_20.pth"
   result: "./"
 
-DIR: "ckpt/ade20k-hrnetv2-c1-CARLADAYCLEARDETERMIN"
+DIR: "ckpt/ade20k-hrnetv2-c1-CARLACLEARNIGHTDETERMIN"
