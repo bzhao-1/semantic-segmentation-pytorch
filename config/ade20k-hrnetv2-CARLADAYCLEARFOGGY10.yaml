@@ -1,7 +1,7 @@
 DATASET:
   root_dataset: "./new_data"
-  list_train: "./new_data/odgt_clear_day/train.odgt"
-  list_val: "./new_data/odgt_clear_day/validate.odgt"
+  list_train: "./new_data/odgt_clearday_10%foggy/train.odgt"
+  list_val: "./new_data/odgt_clearday_10%foggy/validate.odgt"
   num_class: 29
   imgSizes: (360, 540, 720)  # Smaller sizes
   imgMaxSize: 960
@@ -16,12 +16,12 @@ MODEL:
 
 TRAIN:
   batch_size_per_gpu: 2
-  num_epoch: 20
-  start_epoch: 0
+  num_epoch: 30
+  start_epoch: 20
   epoch_iters: 5000
   optim: "SGD"
-  lr_encoder: 0.02
-  lr_decoder: 0.02
+  lr_encoder: 0.002
+  lr_decoder: 0.002
   lr_pow: 0.9
   beta1: 0.9
   weight_decay: 1e-4
@@ -33,10 +33,10 @@ TRAIN:
 
 VAL:
   visualize: True
-  checkpoint: "epoch_20.pth"
+  checkpoint: "epoch_30.pth"
 
 TEST:
-  checkpoint: "epoch_20.pth"
+  checkpoint: "epoch_30.pth"
   result: "./"
 
-DIR: "ckpt/ade20k-hrnetv2-c1-CARLADAYCLEARDETERMIN"
+DIR: "ckpt/ade20k-hrnetv2-c1-CARLADAYCLEARFOGGY10"
