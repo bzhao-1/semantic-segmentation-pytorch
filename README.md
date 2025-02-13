@@ -1,7 +1,8 @@
 # Semantic Segmentation on CARLA Data
 # Adapted from MIT ADE20K dataset in PyTorch
 
-This is a PyTorch implementation of semantic segmentation models on custom data from the CARLA simulator. The implementation is adapted from the MIT ADE20K scene parsing dataset (http://sceneparsing.csail.mit.edu/).
+This is a PyTorch implementation of semantic segmentation models on custom data from the CARLA simulator across 4 different weather scenarios. Each dataset contains 1995 total images with an 80-10-10 split for training, testing, and validation. 
+The implementation is adapted from the MIT ADE20K scene parsing dataset (http://sceneparsing.csail.mit.edu/).
 
 
 ## Background of MIT ADE20K
@@ -22,10 +23,10 @@ This module computes the mean and standard-deviation across all devices during t
 
 ## Models
 
-We trained the model on CARLA data with a MobileNetV2dilated encoder. This was adpated from the pretrained models provided in the ADE20K paper. 
+We trained the model on CARLA data with a HRNETV2 encoder. This was adpated from the configurations provided in the ADE20K source code. 
 
 Encoder:
-- MobileNetV2dilated
+- HRNetV2
 
 
 Decoders:
