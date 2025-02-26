@@ -11,7 +11,9 @@ import torch.nn as nn
 from scipy.io import loadmat
 # Our libs
 from mit_semseg.config import cfg
-from mit_semseg.dataset import ValDataset
+# from mit_semseg.dataset import ValDataset
+# from mit_semseg.dataset_4_channel import ValDataset
+from mit_semseg.dataset_1_channel import ValDataset
 from mit_semseg.models import ModelBuilder, SegmentationModule
 from mit_semseg.utils import AverageMeter, colorEncode, accuracy, intersectionAndUnion, parse_devices, setup_logger
 from mit_semseg.lib.nn import user_scattered_collate, async_copy_to
@@ -24,6 +26,12 @@ colors = loadmat('data/color_29.mat')['colors']
 
 def visualize_result(data, pred, dir_result):
     (img, seg, info) = data
+    # # ! 4CH
+    # img = img[:,:,:3]
+    # # !
+    # ! 1CH
+    img = np.repeat(np.expand_dims(img, axis = 2), 3, axis=2)
+    # !
 
     # segmentation
     seg_color = colorEncode(seg, colors)
@@ -47,7 +55,7 @@ def evaluate(segmentation_module, loader, cfg, gpu_id, result_queue):
         full_dir_name = os.path.basename(os.path.dirname(os.path.dirname(cfg.DATASET.list_val)))
         resolved_dir = os.path.realpath(cfg.DIR)
         weather_type = loader.dataset.root_dataset.split('/')[-1]
-        base_result_dir = os.path.join("/Data/ckpt1", f"{resolved_dir.split('/')[-1]}{weather_type}")
+        base_result_dir = os.path.join("/Data/fusion_out", f"{resolved_dir.split('/')[-1]}{weather_type}")
         if not os.path.exists(base_result_dir):
             os.makedirs(base_result_dir)
         test_set_name = '_'.join(full_dir_name.split('_')[2:])

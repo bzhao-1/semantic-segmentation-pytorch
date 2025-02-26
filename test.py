@@ -10,6 +10,7 @@ from scipy.io import loadmat
 import csv
 # Our libs
 from mit_semseg.dataset import TestDataset
+from mit_semseg.dataset_4_channel import TestDataset
 from mit_semseg.models import ModelBuilder, SegmentationModule
 from mit_semseg.utils import colorEncode, find_recursive, setup_logger
 from mit_semseg.lib.nn import user_scattered_collate, async_copy_to
