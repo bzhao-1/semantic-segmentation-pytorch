@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from . import resnet, resnext, mobilenet, hrnet
+import numpy as np
 from mit_semseg.lib.nn import SynchronizedBatchNorm2d
 BatchNorm2d = SynchronizedBatchNorm2d
 
@@ -46,6 +47,59 @@ class SegmentationModule(SegmentationModuleBase):
             pred = self.decoder(self.encoder(feed_dict['img_data'], return_feature_maps=True), segSize=segSize)
             return pred
 
+class ParallelSegmentationModuleBase(nn.Module):
+    def __init__(self):
+        super(ParallelSegmentationModuleBase, self).__init__()
+
+    def pixel_acc(self, pred, label):
+        _, preds = torch.max(pred, dim=1)
+        valid = (label >= 0).long()
+        acc_sum = torch.sum(valid * (preds == label).long())
+        pixel_sum = torch.sum(valid)
+        acc = acc_sum.float() / (pixel_sum.float() + 1e-10)
+        return acc
+
+
+class ParallelSegmentationModule(ParallelSegmentationModuleBase):
+    def __init__(self, net_enc_rgb, net_enc_depth, net_dec, crit, deep_sup_scale=None):
+        super(ParallelSegmentationModule, self).__init__()
+        self.encoder_rgb = net_enc_rgb
+        self.encoder_depth = net_enc_depth
+        self.decoder = net_dec
+        self.crit = crit
+        self.deep_sup_scale = deep_sup_scale
+
+    def forward(self, feed_dict, *, segSize=None):
+        if self.deep_sup_scale is not None:
+            raise NotImplementedError
+        # training
+        if segSize is None:
+            features_rgb = self.encoder_rgb(feed_dict['img_data_rgb'], return_feature_maps=True)
+            features_depth = self.encoder_depth(feed_dict['img_data_d'], return_feature_maps=True)
+            
+            # concatenate features
+            features = [torch.cat([f_rgb, f_depth], dim=1) for f_rgb, f_depth in zip(features_rgb, features_depth)]
+
+            pred = self.decoder(features)
+
+            loss = self.crit(pred, feed_dict['seg_label'])
+
+            acc = self.pixel_acc(pred, feed_dict['seg_label'])
+            return loss, acc
+        # inference
+        else:
+            features_rgb = self.encoder_rgb(feed_dict['img_data_rgb'], return_feature_maps=True)
+            features_depth = self.encoder_depth(feed_dict['img_data_d'], return_feature_maps=True)
+
+            idx = np.random.randint(0,100)
+            np.save(f'features_rgb_{idx}.npy', features_rgb[0].detach().cpu().numpy())
+            np.save(f'features_depth_{idx}.npy', features_depth[0].detach().cpu().numpy())
+            
+            # concatenate features
+            features = [torch.cat([f_rgb, f_depth], dim=1) for f_rgb, f_depth in zip(features_rgb, features_depth)]
+
+            pred = self.decoder(features, segSize=segSize)
+            return pred
 
 class ModelBuilder:
     # custom weights initialization
@@ -61,7 +115,7 @@ class ModelBuilder:
         #    m.weight.data.normal_(0.0, 0.0001)
 
     @staticmethod
-    def build_encoder(arch='resnet50dilated', fc_dim=512, weights=''):
+    def build_encoder(arch='resnet50dilated', fc_dim=512, weights='', inplanes=4):
         pretrained = True if len(weights) == 0 else False
         pretrained = False
         arch = arch.lower()
@@ -98,7 +152,7 @@ class ModelBuilder:
             orig_resnext = resnext.__dict__['resnext101'](pretrained=pretrained)
             net_encoder = Resnet(orig_resnext) # we can still use class Resnet
         elif arch == 'hrnetv2':
-            net_encoder = hrnet.__dict__['hrnetv2'](pretrained=pretrained)
+            net_encoder = hrnet.__dict__['hrnetv2'](pretrained=pretrained, inplanes=inplanes)
         else:
             raise Exception('Architecture undefined!')
 

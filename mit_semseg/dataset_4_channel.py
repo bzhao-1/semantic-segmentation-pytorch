@@ -161,9 +161,7 @@ def to_sparse_depth_image(lidar, w, h):
 
     return distance
 
-def stack_layers(lidar, rgb, root_dir):
-    rgb_arr = np.array(Image.open(os.path.join(root_dir, 'rgb', rgb)).convert('RGB'), dtype = np.uint8)
-    lidar_arr = np.load(os.path.join(root_dir, 'lidar_2d', lidar))
+def stack_layers(lidar_arr: np.ndarray, rgb_arr: np.ndarray) -> np.ndarray:
     distance = to_sparse_depth_image(lidar_arr, rgb_arr.shape[1], rgb_arr.shape[0])
     distance = densify(distance)
     # distance.save('distance.png')
@@ -174,30 +172,42 @@ def stack_layers(lidar, rgb, root_dir):
     stack = np.concatenate((rgb_arr, distance), axis = 2)
     return stack
 
-def stack_cheat_layers(rgb, root_dir):
-    rgb_arr = np.array(Image.open(os.path.join(root_dir, 'rgb', rgb)).convert('RGB'), dtype = np.uint8)
-    seg_arr = np.array(Image.open(os.path.join(root_dir, 'rgb_seg', rgb)).convert('L'), dtype = np.uint8)
-    seg_arr = seg_arr / 29
-    seg_arr = np.expand_dims(seg_arr, axis = 2)
-    stack = np.concatenate((rgb_arr, seg_arr), axis = 2)
-    return stack
+# def stack_cheat_layers(rgb, root_dir):
+#     rgb_arr = np.array(Image.open(os.path.join(root_dir, 'rgb', rgb)).convert('RGB'), dtype = np.uint8)
+#     seg_arr = np.array(Image.open(os.path.join(root_dir, 'rgb_seg', rgb)).convert('L'), dtype = np.uint8)
+#     seg_arr = seg_arr / 29
+#     seg_arr = np.expand_dims(seg_arr, axis = 2)
+#     stack = np.concatenate((rgb_arr, seg_arr), axis = 2)
+#     return stack
 
-def stack_noise_layers(rgb, root_dir):
-    rgb_arr = np.array(Image.open(os.path.join(root_dir, 'rgb', rgb)).convert('RGB'), dtype = np.uint8)
-    rand = np.random.rand(rgb_arr.shape[0], rgb_arr.shape[1], 1).astype(np.float32)
-    stack = np.concatenate((rgb_arr, rand), axis = 2)
-    return stack
+# def stack_noise_layers(rgb, root_dir):
+#     rgb_arr = np.array(Image.open(os.path.join(root_dir, 'rgb', rgb)).convert('RGB'), dtype = np.uint8)
+#     rand = np.random.rand(rgb_arr.shape[0], rgb_arr.shape[1], 1).astype(np.float32)
+#     stack = np.concatenate((rgb_arr, rand), axis = 2)
+#     return stack
+
+def noise_image(rgb_arr, brightness, channels = 3, courseness = 8):
+    y = rgb_arr.shape[0]
+    x = rgb_arr.shape[1]
+    rand = np.random.rand(y // courseness, x // courseness, channels).astype(np.float32)
+    rand_im = Image.fromarray((rand * brightness).astype(np.uint8))
+    return imresize(rand_im, (x, y))
 
 # Load image and lidar data and return the stack as a cmyk image (actually rgbd)
-def load_image(img_path, test = False):
+def load_image(img_path, noise_rate = 0):
     root_dir = '/'.join(os.path.dirname(img_path).split('/')[:-1])
     rgb = os.path.basename(img_path)
     lidar = os.path.basename(img_path).replace('.png', '.npy')
 
-    if test:
-        img = stack_noise_layers(rgb, root_dir)
-    else:
-        img = stack_layers(lidar, rgb, root_dir)
+    rgb_arr = np.array(Image.open(os.path.join(root_dir, 'rgb', rgb)).convert('RGB'), dtype = np.uint8)
+    lidar_arr = np.load(os.path.join(root_dir, 'lidar_2d', lidar))
+    if noise_rate:
+        if np.random.rand() < noise_rate:
+            brightness = int(np.random.beta(3, 8) * 255)
+            rgb_arr = np.array(noise_image(rgb_arr, brightness, channels = 3))
+            temp = Image.fromarray(rgb_arr)
+    
+    img = stack_layers(lidar_arr, rgb_arr)
 
     # # ! TEMP
     # img = img[:,:,3]

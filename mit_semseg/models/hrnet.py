@@ -257,7 +257,7 @@ blocks_dict = {
 
 
 class HRNetV2(nn.Module):
-    def __init__(self, n_class, **kwargs):
+    def __init__(self, n_class, inplanes = 4, **kwargs):
         super(HRNetV2, self).__init__()
         extra = {
             'STAGE2': {'NUM_MODULES': 1, 'NUM_BRANCHES': 2, 'BLOCK': 'BASIC', 'NUM_BLOCKS': (4, 4), 'NUM_CHANNELS': (48, 96), 'FUSE_METHOD': 'SUM'},
@@ -265,12 +265,11 @@ class HRNetV2(nn.Module):
             'STAGE4': {'NUM_MODULES': 3, 'NUM_BRANCHES': 4, 'BLOCK': 'BASIC', 'NUM_BLOCKS': (4, 4, 4, 4), 'NUM_CHANNELS': (48, 96, 192, 384), 'FUSE_METHOD': 'SUM'},
             'FINAL_CONV_KERNEL': 1
             }
-        
-        INPLANES = 1
-        print('INPLANES:', INPLANES)
+
+        print('INPLANES:', inplanes)
 
         # stem net
-        self.conv1 = nn.Conv2d(INPLANES, 64, kernel_size=3, stride=2, padding=1,
+        self.conv1 = nn.Conv2d(inplanes, 64, kernel_size=3, stride=2, padding=1,
                                bias=False)
         self.bn1 = BatchNorm2d(64, momentum=BN_MOMENTUM)
         self.conv2 = nn.Conv2d(64, 64, kernel_size=3, stride=2, padding=1,
@@ -440,8 +439,8 @@ class HRNetV2(nn.Module):
         return [x]
 
 
-def hrnetv2(pretrained=False, **kwargs):
-    model = HRNetV2(n_class=1000, **kwargs)
+def hrnetv2(pretrained=False, inplanes = 4, **kwargs):
+    model = HRNetV2(n_class=1000, inplanes=inplanes, **kwargs)
     if pretrained:
         model.load_state_dict(load_url(model_urls['hrnetv2']), strict=False)
 
