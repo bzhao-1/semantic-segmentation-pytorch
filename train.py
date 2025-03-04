@@ -10,8 +10,8 @@ import torch
 import torch.nn as nn
 # Our libs
 from mit_semseg.config import cfg
-# from mit_semseg.dataset import TrainDataset
-from mit_semseg.dataset_4_channel import TrainDataset
+from mit_semseg.dataset import TrainDataset
+# from mit_semseg.dataset_4_channel import TrainDataset
 # from mit_semseg.dataset_1_channel import TrainDataset
 from mit_semseg.models import ModelBuilder, SegmentationModule
 from mit_semseg.utils import AverageMeter, parse_devices, setup_logger
@@ -148,7 +148,8 @@ def main(cfg, gpus):
     net_encoder = ModelBuilder.build_encoder(
         arch=cfg.MODEL.arch_encoder.lower(),
         fc_dim=cfg.MODEL.fc_dim,
-        weights=cfg.MODEL.weights_encoder)
+        weights=cfg.MODEL.weights_encoder,
+        inplanes = 3)
     net_decoder = ModelBuilder.build_decoder(
         arch=cfg.MODEL.arch_decoder.lower(),
         fc_dim=cfg.MODEL.fc_dim,

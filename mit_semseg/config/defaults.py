@@ -74,6 +74,10 @@ _C.TRAIN.disp_iter = 20
 # manual seed
 _C.TRAIN.seed = 304
 
+# freezing layers
+_C.TRAIN.freeze_depth = False
+_C.TRAIN.freeze_rgb = False
+
 # -----------------------------------------------------------------------------
 # Validation
 # -----------------------------------------------------------------------------

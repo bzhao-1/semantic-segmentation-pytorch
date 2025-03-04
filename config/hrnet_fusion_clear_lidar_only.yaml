@@ -24,7 +24,7 @@ TRAIN:
   beta1: 0.9
   deep_sup_scale: 0.4
   disp_iter: 20
-  epoch_iters: 480
+  epoch_iters: 960
   fix_bn: False
   lr_decoder: 0.02
   lr_encoder: 0.02

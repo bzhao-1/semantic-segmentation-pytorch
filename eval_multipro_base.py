@@ -11,9 +11,8 @@ import torch.nn as nn
 from scipy.io import loadmat
 # Our libs
 from mit_semseg.config import cfg
-from mit_semseg.dataset import ValDataset as ValDataset3
-from mit_semseg.dataset_1_channel import ValDataset as ValDataset1
-from mit_semseg.models import ModelBuilder, ParallelSegmentationModule
+from mit_semseg.dataset import ValDataset
+from mit_semseg.models import ModelBuilder, SegmentationModule
 from mit_semseg.utils import AverageMeter, colorEncode, accuracy, intersectionAndUnion, parse_devices, setup_logger
 from mit_semseg.lib.nn import user_scattered_collate, async_copy_to
 from mit_semseg.lib.utils import as_numpy
@@ -25,12 +24,6 @@ colors = loadmat('data/color_29.mat')['colors']
 
 def visualize_result(data, pred, dir_result):
     (img, seg, info) = data
-    # # ! 4CH
-    # img = img[:,:,:3]
-    # # !
-    # # ! 1CH
-    # img = np.repeat(np.expand_dims(img, axis = 2), 3, axis=2)
-    # # !
 
     # segmentation
     seg_color = colorEncode(seg, colors)
@@ -46,14 +39,14 @@ def visualize_result(data, pred, dir_result):
     Image.fromarray(im_vis).save(os.path.join(dir_result, img_name.replace('.jpg', '.png')))
 
 
-def evaluate(segmentation_module, loader_rgb, loader_d, cfg, gpu_id, result_queue):
+def evaluate(segmentation_module, loader, cfg, gpu_id, result_queue):
     segmentation_module.eval()
 
     # Create a new folder within the base result directory for the images
     if cfg.VAL.visualize:
         full_dir_name = os.path.basename(os.path.dirname(os.path.dirname(cfg.DATASET.list_val)))
         resolved_dir = os.path.realpath(cfg.DIR)
-        weather_type = loader_rgb.dataset.root_dataset.split('/')[-1]
+        weather_type = loader.dataset.root_dataset.split('/')[-1]
         base_result_dir = os.path.join("/Data/fusion_out", f"{resolved_dir.split('/')[-1]}{weather_type}")
         if not os.path.exists(base_result_dir):
             os.makedirs(base_result_dir)
@@ -61,24 +54,21 @@ def evaluate(segmentation_module, loader_rgb, loader_d, cfg, gpu_id, result_queu
         result_dir = os.path.join(base_result_dir, f'results_{test_set_name}')
         if not os.path.exists(result_dir):
             os.makedirs(result_dir)
-    
-    for batch_data_rgb, batch_data_d in zip(loader_rgb, loader_d):
+        
+    for batch_data in loader:
         # process data
-        batch_data_rgb = batch_data_rgb[0]
-        batch_data_d = batch_data_d[0]
-        seg_label = as_numpy(batch_data_rgb['seg_label'][0])
-        img_resized_list_rgb = batch_data_rgb['img_data']
-        img_resized_list_d = batch_data_d['img_data']
+        batch_data = batch_data[0]
+        seg_label = as_numpy(batch_data['seg_label'][0])
+        img_resized_list = batch_data['img_data']
 
         with torch.no_grad():
             segSize = (seg_label.shape[0], seg_label.shape[1])
             scores = torch.zeros(1, cfg.DATASET.num_class, segSize[0], segSize[1])
             scores = async_copy_to(scores, gpu_id)
 
-            for img, depth in zip(img_resized_list_rgb, img_resized_list_d):
-                feed_dict = batch_data_rgb.copy()
-                feed_dict['img_data_rgb'] = img
-                feed_dict['img_data_d'] = depth
+            for img in img_resized_list:
+                feed_dict = batch_data.copy()
+                feed_dict['img_data'] = img
                 del feed_dict['img_ori']
                 del feed_dict['info']
                 feed_dict = async_copy_to(feed_dict, gpu_id)
@@ -97,7 +87,7 @@ def evaluate(segmentation_module, loader_rgb, loader_d, cfg, gpu_id, result_queu
 
         if cfg.VAL.visualize:
             visualize_result(
-                (batch_data_rgb['img_ori'], seg_label, batch_data_rgb['info']),
+                (batch_data['img_ori'], seg_label, batch_data['info']),
                 pred,
                 result_dir
             )
@@ -110,12 +100,7 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue, test_set):
 
     if not test_set:
         # Dataset and Loader
-        dataset_val_rgb = ValDataset3(
-            cfg.DATASET.root_dataset,
-            cfg.DATASET.list_val,
-            cfg.DATASET,
-            start_idx=start_idx, end_idx=end_idx)
-        dataset_val_d = ValDataset1(
+        dataset_val = ValDataset(
             cfg.DATASET.root_dataset,
             cfg.DATASET.list_val,
             cfg.DATASET,
@@ -126,12 +111,7 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue, test_set):
         list_val = os.path.join(test_set, "odgt", "test.odgt")
         with open(list_val, 'r') as f:
             print(f"Number of images in {list_val}: {len(f.readlines())}")
-        dataset_val_rgb = ValDataset3(
-            root_dataset,
-            list_val,
-            cfg.DATASET,
-            start_idx=start_idx, end_idx=end_idx)
-        dataset_val_d = ValDataset1(
+        dataset_val = ValDataset(
             root_dataset,
             list_val,
             cfg.DATASET,
@@ -139,34 +119,25 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue, test_set):
     
    
     
-    loader_val_rgb = torch.utils.data.DataLoader(
-        dataset_val_rgb,
+    loader_val = torch.utils.data.DataLoader(
+        dataset_val,
         batch_size=cfg.VAL.batch_size,
         shuffle=False,
         collate_fn=user_scattered_collate,
         num_workers=2)
 
-    loader_val_d = torch.utils.data.DataLoader(
-        dataset_val_d,
-        batch_size=cfg.VAL.batch_size,
-        shuffle=False,
-        collate_fn=user_scattered_collate,
-        num_workers=2)
+    
+    
 
     # Network Builders
-    net_encoder_rgb = ModelBuilder.build_encoder(
+    net_encoder = ModelBuilder.build_encoder(
         arch=cfg.MODEL.arch_encoder.lower(),
         fc_dim=cfg.MODEL.fc_dim,
-        weights=cfg.MODEL.weights_encoder_rgb,
-        inplanes=3)
-    net_encoder_depth = ModelBuilder.build_encoder(
-        arch=cfg.MODEL.arch_encoder.lower(),
-        fc_dim=cfg.MODEL.fc_dim,
-        weights=cfg.MODEL.weights_encoder_depth,
-        inplanes=1)
+        weights=cfg.MODEL.weights_encoder,
+        inplanes = 3)
     net_decoder = ModelBuilder.build_decoder(
         arch=cfg.MODEL.arch_decoder.lower(),
-        fc_dim=cfg.MODEL.fc_dim*2,
+        fc_dim=cfg.MODEL.fc_dim,
         num_class=cfg.DATASET.num_class,
         weights=cfg.MODEL.weights_decoder,
         use_softmax=True)
@@ -174,15 +145,14 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue, test_set):
 
     crit = nn.NLLLoss(ignore_index=-1)
 
-    segmentation_module = ParallelSegmentationModule(
-        net_encoder_rgb, net_encoder_depth, net_decoder, crit)
+    segmentation_module = SegmentationModule(net_encoder, net_decoder, crit)
 
     segmentation_module.cuda()
 
     # Main loop
-    evaluate(segmentation_module, loader_val_rgb, loader_val_d, cfg, gpu_id, result_queue)
+    evaluate(segmentation_module, loader_val, cfg, gpu_id, result_queue)
 
-
+# python3 eval_multipro_base.py --cfg config/hrnetv2_c3_base.yaml --gpus 0 --test_set data/night
 def main(cfg, gpus, test_set):
     with open(cfg.DATASET.list_val, 'r') as f:
         lines = f.readlines()
@@ -192,10 +162,9 @@ def main(cfg, gpus, test_set):
         list_val = os.path.join(test_set, "odgt", "test.odgt")
         with open(list_val, 'r') as f:
             num_files = len(f.readlines())
-        
 
     num_files_per_gpu = math.ceil(num_files / len(gpus))
-    print(cfg.DATASET.list_val)
+
     pbar = tqdm(total=num_files)
 
     acc_meter = AverageMeter()
@@ -238,7 +207,7 @@ def main(cfg, gpus, test_set):
 
     print('Evaluation Done!')
 
-# python3 eval_multipro_parallel.py --cfg config/hrnetv2_mid_fusion_2.yaml --gpus 0 --test_set data/night
+
 if __name__ == '__main__':
     assert LooseVersion(torch.__version__) >= LooseVersion('0.4.0'), \
         'PyTorch>=0.4.0 is required'
@@ -281,15 +250,12 @@ if __name__ == '__main__':
     logger.info("Running with config:\n{}".format(cfg))
 
     # absolute paths of model weights
-    cfg.MODEL.weights_encoder_rgb = os.path.join(
-        cfg.DIR, 'encoder_rgb_' + cfg.VAL.checkpoint)
-    cfg.MODEL.weights_encoder_depth = os.path.join(
-        cfg.DIR, 'encoder_depth_' + cfg.VAL.checkpoint)
+    cfg.MODEL.weights_encoder = os.path.join(
+        cfg.DIR, 'encoder_' + cfg.VAL.checkpoint)
     cfg.MODEL.weights_decoder = os.path.join(
         cfg.DIR, 'decoder_' + cfg.VAL.checkpoint)
-    assert os.path.exists(cfg.MODEL.weights_encoder_rgb) and \
-        os.path.exists(cfg.MODEL.weights_encoder_depth) and \
-        os.path.exists(cfg.MODEL.weights_decoder), "checkpoint does not exitst!" 
+    assert os.path.exists(cfg.MODEL.weights_encoder) and \
+        os.path.exists(cfg.MODEL.weights_decoder), "checkpoint does not exitst!"
 
     if not os.path.isdir(os.path.join(cfg.DIR, "result")):
         os.makedirs(os.path.join(cfg.DIR, "result"))

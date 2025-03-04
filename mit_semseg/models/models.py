@@ -59,6 +59,36 @@ class ParallelSegmentationModuleBase(nn.Module):
         acc = acc_sum.float() / (pixel_sum.float() + 1e-10)
         return acc
 
+class SE_Block(nn.Module):
+    def __init__(self, inplanes, r=16):
+        super(SE_Block, self).__init__()
+        self.squeeze = nn.AdaptiveAvgPool2d(1)
+        self.excitation = nn.Sequential(
+            nn.Linear(inplanes, inplanes // r, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(inplanes // r, inplanes, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        batch_size, inplanes, _, _ = x.size()
+        y = self.squeeze(x).view(batch_size, inplanes)
+        y = self.excitation(y).view(batch_size, inplanes, 1, 1)
+        return y
+    
+class SEFusion(nn.Module):
+    def __init__(self, in_channels):
+        super(SEFusion, self).__init__()
+        self.se_rgb = SE_Block(in_channels)
+        self.se_d = SE_Block(in_channels)
+
+    def forward(self, x_rgb, x_d):
+        rgb_attention = self.se_rgb(x_rgb)
+        depth_attention = self.se_d(x_d)
+        
+        rgb_feat = x_rgb * rgb_attention
+        depth_feat = x_d * depth_attention
+        return [rgb_feat], [depth_feat]
 
 class ParallelSegmentationModule(ParallelSegmentationModuleBase):
     def __init__(self, net_enc_rgb, net_enc_depth, net_dec, crit, deep_sup_scale=None):
@@ -68,20 +98,33 @@ class ParallelSegmentationModule(ParallelSegmentationModuleBase):
         self.decoder = net_dec
         self.crit = crit
         self.deep_sup_scale = deep_sup_scale
+        self.se_fusion = SEFusion(720)
 
     def forward(self, feed_dict, *, segSize=None):
-        if self.deep_sup_scale is not None:
-            raise NotImplementedError
         # training
         if segSize is None:
             features_rgb = self.encoder_rgb(feed_dict['img_data_rgb'], return_feature_maps=True)
             features_depth = self.encoder_depth(feed_dict['img_data_d'], return_feature_maps=True)
-            
+
+            # attention
+            # features_rgb, features_depth = self.se_fusion(features_rgb[-1], features_depth[-1])
             # concatenate features
             features = [torch.cat([f_rgb, f_depth], dim=1) for f_rgb, f_depth in zip(features_rgb, features_depth)]
 
-            pred = self.decoder(features)
+            if self.deep_sup_scale is not None: # use deep supervision technique
+                (pred, pred_deepsup_rgb, pred_deepsup_d) = self.decoder(features)
+            else:
+                pred = self.decoder(features)
 
+            loss = self.crit(pred, feed_dict['seg_label'])
+
+            if self.deep_sup_scale is not None:
+                loss_deepsup_rgb = self.crit(pred_deepsup_rgb, feed_dict['seg_label'])
+                loss_deepsup_d = self.crit(pred_deepsup_d, feed_dict['seg_label'])
+                weighted_loss_deepsup = .33 * loss_deepsup_rgb + 0.66 * loss_deepsup_d
+                loss = loss + weighted_loss_deepsup * self.deep_sup_scale
+
+            acc = self.pixel_acc(pred, feed_dict['seg_label'])
             loss = self.crit(pred, feed_dict['seg_label'])
 
             acc = self.pixel_acc(pred, feed_dict['seg_label'])
@@ -90,10 +133,11 @@ class ParallelSegmentationModule(ParallelSegmentationModuleBase):
         else:
             features_rgb = self.encoder_rgb(feed_dict['img_data_rgb'], return_feature_maps=True)
             features_depth = self.encoder_depth(feed_dict['img_data_d'], return_feature_maps=True)
+            # features_rgb, features_depth = self.se_fusion(features_rgb[-1], features_depth[-1])
 
             idx = np.random.randint(0,100)
-            np.save(f'features_rgb_{idx}.npy', features_rgb[0].detach().cpu().numpy())
-            np.save(f'features_depth_{idx}.npy', features_depth[0].detach().cpu().numpy())
+            # np.save(f'features_rgb_{idx}.npy', features_rgb[0].detach().cpu().numpy())
+            # np.save(f'features_depth_{idx}.npy', features_depth[0].detach().cpu().numpy())
             
             # concatenate features
             features = [torch.cat([f_rgb, f_depth], dim=1) for f_rgb, f_depth in zip(features_rgb, features_depth)]
@@ -115,7 +159,7 @@ class ModelBuilder:
         #    m.weight.data.normal_(0.0, 0.0001)
 
     @staticmethod
-    def build_encoder(arch='resnet50dilated', fc_dim=512, weights='', inplanes=4):
+    def build_encoder(arch='resnet50dilated', fc_dim=512, weights='', inplanes = 4):
         pretrained = True if len(weights) == 0 else False
         pretrained = False
         arch = arch.lower()
@@ -176,6 +220,24 @@ class ModelBuilder:
                 use_softmax=use_softmax)
         elif arch == 'c1':
             net_decoder = C1(
+                num_class=num_class,
+                fc_dim=fc_dim,
+                use_softmax=use_softmax)
+        elif arch == 'c3':
+            print('Using C3')
+            net_decoder = C3(
+                num_class=num_class,
+                fc_dim=fc_dim,
+                use_softmax=use_softmax)
+        elif arch == 'c3_deepsup':
+            print('Using C3_deepsup')
+            net_decoder = C3DeepSup(
+                num_class=num_class,
+                fc_dim=fc_dim,
+                use_softmax=use_softmax)
+        elif arch == 'c5':
+            print('Using C5')
+            net_decoder = C5(
                 num_class=num_class,
                 fc_dim=fc_dim,
                 use_softmax=use_softmax)
@@ -439,6 +501,121 @@ class C1(nn.Module):
 
         return x
 
+# last conv
+class C3(nn.Module):
+    def __init__(self, num_class=150, fc_dim=2048, use_softmax=False):
+        super(C3, self).__init__()
+        self.use_softmax = use_softmax
+
+        dims = [fc_dim // 2, fc_dim // 4, fc_dim // 8]
+
+        self.cbr1 = conv3x3_bn_relu(fc_dim, dims[0], 1)
+        self.cbr2 = conv3x3_bn_relu(dims[0], dims[1], 1)
+        self.cbr3 = conv3x3_bn_relu(dims[1], dims[2], 1)
+
+        # last conv
+        self.conv_last = nn.Conv2d(dims[2], num_class, 1, 1, 0)
+
+
+    def forward(self, conv_out, segSize=None):
+        conv5 = conv_out[-1]
+        x = self.cbr1(conv5)
+        x = self.cbr2(x)
+        x = self.cbr3(x)
+        x = self.conv_last(x)
+
+        if self.use_softmax: # is True during inference
+            x = nn.functional.interpolate(
+                x, size=segSize, mode='bilinear', align_corners=False)
+            x = nn.functional.softmax(x, dim=1)
+        else:
+            x = nn.functional.log_softmax(x, dim=1)
+
+        return x
+    
+# last conv
+class C5(nn.Module):
+    def __init__(self, num_class=150, fc_dim=2048, use_softmax=False):
+        super(C5, self).__init__()
+        self.use_softmax = use_softmax
+
+        dims = [fc_dim // 2, fc_dim // 4, fc_dim // 8]
+
+        self.cbr1 = conv3x3_bn_relu(fc_dim, dims[0], 1)
+        self.cbr2 = conv3x3_bn_relu(dims[0], dims[1], 1)
+        self.cbr3 = conv3x3_bn_relu(dims[1], dims[1], 1)
+        self.cbr4 = conv3x3_bn_relu(dims[1], dims[2], 1)
+        self.cbr5 = conv3x3_bn_relu(dims[2], dims[2], 1)
+
+        # last conv
+        self.conv_last = nn.Conv2d(dims[2], num_class, 1, 1, 0)
+
+    def forward(self, conv_out, segSize=None):
+        conv5 = conv_out[-1]
+        x = self.cbr1(conv5)
+        x = self.cbr2(x)
+        x = self.cbr3(x)
+        x = self.cbr4(x)
+        x = self.cbr5(x)
+        x = self.conv_last(x)
+
+        if self.use_softmax: # is True during inference
+            x = nn.functional.interpolate(
+                x, size=segSize, mode='bilinear', align_corners=False)
+            x = nn.functional.softmax(x, dim=1)
+        else:
+            x = nn.functional.log_softmax(x, dim=1)
+
+        return x
+    
+# last conv, deep supervision
+class C3DeepSup(nn.Module):
+    def __init__(self, num_class=150, fc_dim=2048, use_softmax=False):
+        super(C3DeepSup, self).__init__()
+        self.use_softmax = use_softmax
+
+        dims = [fc_dim // 2, fc_dim // 4, fc_dim // 8]
+
+        self.cbr1 = conv3x3_bn_relu(fc_dim, dims[0], 1)
+        self.cbr2 = conv3x3_bn_relu(dims[0], dims[1], 1)
+        self.cbr3 = conv3x3_bn_relu(dims[1], dims[2], 1)
+        self.cbr_deepsup = conv3x3_bn_relu(336, fc_dim // 4, 1)
+
+
+        # last conv
+        self.conv_last = nn.Conv2d(dims[2], num_class, 1, 1, 0)
+        self.conv_last_deepsup = nn.Conv2d(fc_dim // 4, num_class, 1, 1, 0)
+
+    def forward(self, conv_out, segSize=None):
+        conv5 = conv_out[-1]
+
+        x = self.cbr1(conv5)
+        x = self.cbr2(x)
+        x = self.cbr3(x)
+        x = self.conv_last(x)
+
+        if self.use_softmax:  # is True during inference
+            x = nn.functional.interpolate(
+                x, size=segSize, mode='bilinear', align_corners=False)
+            x = nn.functional.softmax(x, dim=1)
+            return x
+
+        # deep sup
+        conv4 = torch.chunk(conv_out[-2], 2, dim=1)
+        conv4_rgb = conv4[0]
+        conv4_d = conv4[1]
+        
+        ds_rgb = self.cbr_deepsup(conv4_rgb)
+        ds_rgb = self.conv_last_deepsup(ds_rgb)
+
+        ds_d = self.cbr_deepsup(conv4_d)
+        ds_d = self.conv_last_deepsup(ds_d)
+
+        x = nn.functional.log_softmax(x, dim=1)
+        ds_rgb = nn.functional.log_softmax(ds_rgb, dim=1)
+        ds_d = nn.functional.log_softmax(ds_d, dim=1)
+
+        return (x, ds_rgb, ds_d)
 
 # pyramid pooling
 class PPM(nn.Module):
