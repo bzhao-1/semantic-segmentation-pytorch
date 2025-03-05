@@ -11,13 +11,13 @@ DATASET:
 
 MODEL:
   arch_encoder: "hrnetv2"
-  arch_decoder: "c3"
+  arch_decoder: "c3_encoder_deepsup"
   fc_dim: 720
 
 TRAIN:
   batch_size_per_gpu: 1
-  num_epoch: 960
-  start_epoch: 10
+  num_epoch: 60
+  start_epoch: 0
   epoch_iters: 960
   optim: "SGD"
   lr_encoder: 0.02
@@ -25,20 +25,18 @@ TRAIN:
   lr_pow: 0.9
   beta1: 0.9
   weight_decay: 1e-4
-  deep_sup_scale: 0.4
+  deep_sup_scale: 0.60
   fix_bn: False
   workers: 16
   disp_iter: 20
   seed: 304
-  freeze_depth: True
-  freeze_rgb: True
 
 VAL:
   visualize: True
-  checkpoint: "epoch_20.pth"
+  checkpoint: "epoch_8.pth"
 
 TEST:
-  checkpoint: "epoch_20.pth"
+  checkpoint: "epoch_8.pth"
   result: "./"
 
-DIR: "/Data/fusion/ckpt/surgery_3"
+DIR: "/Data/fusion/ckpt/mid_fusion_c3_encoder_deepsup_2"

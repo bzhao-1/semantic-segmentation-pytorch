@@ -112,7 +112,7 @@ class ParallelSegmentationModule(ParallelSegmentationModuleBase):
             features = [torch.cat([f_rgb, f_depth], dim=1) for f_rgb, f_depth in zip(features_rgb, features_depth)]
 
             if self.deep_sup_scale is not None: # use deep supervision technique
-                (pred, pred_deepsup_rgb, pred_deepsup_d) = self.decoder(features)
+                (pred, pred_deepsup_rgb, pred_deepsup_d) = self.decoder([features_rgb[0], features_depth[0], features[0]])
             else:
                 pred = self.decoder(features)
 
@@ -232,6 +232,12 @@ class ModelBuilder:
         elif arch == 'c3_deepsup':
             print('Using C3_deepsup')
             net_decoder = C3DeepSup(
+                num_class=num_class,
+                fc_dim=fc_dim,
+                use_softmax=use_softmax)
+        elif arch == 'c3_encoder_deepsup':
+            print('Using C3_encoder_deepsup')
+            net_decoder = C3EncoderDeepsup(
                 num_class=num_class,
                 fc_dim=fc_dim,
                 use_softmax=use_softmax)
@@ -571,6 +577,7 @@ class C5(nn.Module):
 # last conv, deep supervision
 class C3DeepSup(nn.Module):
     def __init__(self, num_class=150, fc_dim=2048, use_softmax=False):
+        raise NotImplementedError('I modified how hrnet reurns the conv_out so the indexing used here will throw an out of bounds error. Just uncomment the block in hrnet that start with if return_feature_maps to make this compatible again.')
         super(C3DeepSup, self).__init__()
         self.use_softmax = use_softmax
 
@@ -614,6 +621,54 @@ class C3DeepSup(nn.Module):
         x = nn.functional.log_softmax(x, dim=1)
         ds_rgb = nn.functional.log_softmax(ds_rgb, dim=1)
         ds_d = nn.functional.log_softmax(ds_d, dim=1)
+
+        return (x, ds_rgb, ds_d)
+    
+# last conv, deep supervision
+class C3EncoderDeepsup(nn.Module):
+    def __init__(self, num_class=150, fc_dim=2048, use_softmax=False):
+        super(C3EncoderDeepsup, self).__init__()
+        self.use_softmax = use_softmax
+
+        dims = [fc_dim // 2, fc_dim // 4, fc_dim // 8]
+
+        self.cbr1 = conv3x3_bn_relu(fc_dim, dims[0], 1)
+        self.cbr2 = conv3x3_bn_relu(dims[0], dims[1], 1)
+        self.cbr3 = conv3x3_bn_relu(dims[1], dims[2], 1)
+        self.cbr_deepsup = conv3x3_bn_relu(fc_dim // 2, fc_dim // 8, 1)
+
+        # last conv
+        self.conv_last = nn.Conv2d(dims[2], num_class, 1, 1, 0)
+        self.conv_last_deepsup = nn.Conv2d(fc_dim // 8, num_class, 1, 1, 0)
+
+    def forward(self, conv_out, segSize=None):
+        conv5 = conv_out[-1]
+
+        x = self.cbr1(conv5)
+        x = self.cbr2(x)
+        x = self.cbr3(x)
+        x = self.conv_last(x)
+
+        if self.use_softmax:  # is True during inference
+            x = nn.functional.interpolate(
+                x, size=segSize, mode='bilinear', align_corners=False)
+            x = nn.functional.softmax(x, dim=1)
+            return x
+
+        # deep sup
+        conv4_rgb = conv_out[0]
+        conv4_d = conv_out[1]
+        
+        ds_rgb = self.cbr_deepsup(conv4_rgb)
+        ds_rgb = self.conv_last_deepsup(ds_rgb)
+        ds_rgb = nn.functional.log_softmax(ds_rgb, dim=1)
+
+
+        ds_d = self.cbr_deepsup(conv4_d)
+        ds_d = self.conv_last_deepsup(ds_d)
+        ds_d = nn.functional.log_softmax(ds_d, dim=1)
+
+        x = nn.functional.log_softmax(x, dim=1)
 
         return (x, ds_rgb, ds_d)
 

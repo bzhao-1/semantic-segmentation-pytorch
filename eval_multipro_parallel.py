@@ -46,11 +46,11 @@ def visualize_result(data, pred, dir_result):
     Image.fromarray(im_vis).save(os.path.join(dir_result, img_name.replace('.jpg', '.png')))
 
 
-def evaluate(segmentation_module, loader_rgb, loader_d, cfg, gpu_id, result_queue):
+def evaluate(segmentation_module, loader_rgb, loader_d, cfg, gpu_id, result_queue, no_vis):
     segmentation_module.eval()
 
     # Create a new folder within the base result directory for the images
-    if cfg.VAL.visualize:
+    if cfg.VAL.visualize and not no_vis:
         full_dir_name = os.path.basename(os.path.dirname(os.path.dirname(cfg.DATASET.list_val)))
         resolved_dir = os.path.realpath(cfg.DIR)
         weather_type = loader_rgb.dataset.root_dataset.split('/')[-1]
@@ -95,7 +95,7 @@ def evaluate(segmentation_module, loader_rgb, loader_d, cfg, gpu_id, result_queu
         intersection, union = intersectionAndUnion(pred, seg_label, cfg.DATASET.num_class)
         result_queue.put_nowait((acc, pix, intersection, union))
 
-        if cfg.VAL.visualize:
+        if cfg.VAL.visualize and not no_vis:
             visualize_result(
                 (batch_data_rgb['img_ori'], seg_label, batch_data_rgb['info']),
                 pred,
@@ -105,7 +105,7 @@ def evaluate(segmentation_module, loader_rgb, loader_d, cfg, gpu_id, result_queu
         
 
 
-def worker(cfg, gpu_id, start_idx, end_idx, result_queue, test_set):
+def worker(cfg, gpu_id, start_idx, end_idx, result_queue, test_set, no_vis):
     torch.cuda.set_device(gpu_id)
 
     if not test_set:
@@ -180,10 +180,10 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue, test_set):
     segmentation_module.cuda()
 
     # Main loop
-    evaluate(segmentation_module, loader_val_rgb, loader_val_d, cfg, gpu_id, result_queue)
+    evaluate(segmentation_module, loader_val_rgb, loader_val_d, cfg, gpu_id, result_queue, no_vis)
 
 
-def main(cfg, gpus, test_set):
+def main(cfg, gpus, test_set, no_vis):
     with open(cfg.DATASET.list_val, 'r') as f:
         lines = f.readlines()
         num_files = len(lines)
@@ -207,7 +207,7 @@ def main(cfg, gpus, test_set):
     for idx, gpu_id in enumerate(gpus):
         start_idx = idx * num_files_per_gpu
         end_idx = min(start_idx + num_files_per_gpu, num_files)
-        proc = Process(target=worker, args=(cfg, gpu_id, start_idx, end_idx, result_queue, test_set))
+        proc = Process(target=worker, args=(cfg, gpu_id, start_idx, end_idx, result_queue, test_set, no_vis))
         print('gpu:{}, start_idx:{}, end_idx:{}'.format(gpu_id, start_idx, end_idx))
         proc.start()
         procs.append(proc)
@@ -269,6 +269,11 @@ if __name__ == '__main__':
         default=None,
         nargs=argparse.REMAINDER,
     )
+    parser.add_argument(
+        "--no_vis",
+        help="Disable visualization",
+        action='store_true'
+    )
 
     args = parser.parse_args()
 
@@ -302,4 +307,4 @@ if __name__ == '__main__':
     # Parse argument for test set if passed
     test_set = args.test_set
 
-    main(cfg, gpus, test_set)
+    main(cfg, gpus, test_set, args.no_vis)

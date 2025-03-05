@@ -417,16 +417,16 @@ class HRNetV2(nn.Module):
             else:
                 x_list.append(y_list[i])
         y_list = self.stage3(x_list)
-        if return_feature_maps:
-            # Upsampling
-            y0_h, y0_w = y_list[0].size(2), y_list[0].size(3)
-            y1 = F.interpolate(
-                y_list[1], size=(y0_h, y0_w), mode='bilinear', align_corners=False)
-            y2 = F.interpolate(
-                y_list[2], size=(y0_h, y0_w), mode='bilinear', align_corners=False)
+        # if return_feature_maps:
+        #     # Upsampling
+        #     y0_h, y0_w = y_list[0].size(2), y_list[0].size(3)
+        #     y1 = F.interpolate(
+        #         y_list[1], size=(y0_h, y0_w), mode='bilinear', align_corners=False)
+        #     y2 = F.interpolate(
+        #         y_list[2], size=(y0_h, y0_w), mode='bilinear', align_corners=False)
 
-            y = torch.cat([y_list[0], y1, y2], 1)
-            conv_out.append(y)
+        #     y = torch.cat([y_list[0], y1, y2], 1)
+        #     conv_out.append(y)
 
         x_list = []
         for i in range(self.stage4_cfg['NUM_BRANCHES']):
@@ -447,9 +447,9 @@ class HRNetV2(nn.Module):
 
         x = torch.cat([x[0], x1, x2, x3], 1)
 
-        if return_feature_maps:
-            conv_out.append(x)
-            return conv_out
+        # if return_feature_maps:
+        #     conv_out.append(x)
+        #     return conv_out
         return [x]
 
 
