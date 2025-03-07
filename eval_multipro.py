@@ -12,8 +12,8 @@ from scipy.io import loadmat
 # Our libs
 from mit_semseg.config import cfg
 # from mit_semseg.dataset import ValDataset
-from mit_semseg.dataset_4_channel import ValDataset
-# from mit_semseg.dataset_1_channel import ValDataset
+# from mit_semseg.dataset_4_channel import ValDataset
+from mit_semseg.dataset_1_channel import ValDataset
 from mit_semseg.models import ModelBuilder, SegmentationModule
 from mit_semseg.utils import AverageMeter, colorEncode, accuracy, intersectionAndUnion, parse_devices, setup_logger
 from mit_semseg.lib.nn import user_scattered_collate, async_copy_to
@@ -26,11 +26,11 @@ colors = loadmat('data/color_29.mat')['colors']
 
 def visualize_result(data, pred, dir_result):
     (img, seg, info) = data
-    # ! 4CH
-    img = img[:,:,:3]
-    # !
+    # # ! 4CH
+    # img = img[:,:,:3]
+    # # !
     # ! 1CH
-    # img = np.repeat(np.expand_dims(img, axis = 2), 3, axis=2)
+    img = np.repeat(np.expand_dims(img, axis = 2), 3, axis=2)
     # !
 
     # segmentation
@@ -139,7 +139,8 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue, test_set):
     net_encoder = ModelBuilder.build_encoder(
         arch=cfg.MODEL.arch_encoder.lower(),
         fc_dim=cfg.MODEL.fc_dim,
-        weights=cfg.MODEL.weights_encoder)
+        weights=cfg.MODEL.weights_encoder,
+        inplanes = 1)
     net_decoder = ModelBuilder.build_decoder(
         arch=cfg.MODEL.arch_decoder.lower(),
         fc_dim=cfg.MODEL.fc_dim,
@@ -162,6 +163,11 @@ def main(cfg, gpus, test_set):
     with open(cfg.DATASET.list_val, 'r') as f:
         lines = f.readlines()
         num_files = len(lines)
+
+    if test_set:
+        list_val = os.path.join(test_set, "odgt", "test.odgt")
+        with open(list_val, 'r') as f:
+            num_files = len(f.readlines())
 
     num_files_per_gpu = math.ceil(num_files / len(gpus))
 

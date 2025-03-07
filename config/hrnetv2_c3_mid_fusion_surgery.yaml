@@ -35,10 +35,10 @@ TRAIN:
 
 VAL:
   visualize: True
-  checkpoint: "epoch_20.pth"
+  checkpoint: "epoch_19.pth"
 
 TEST:
-  checkpoint: "epoch_20.pth"
+  checkpoint: "epoch_19.pth"
   result: "./"
 
 DIR: "/Data/fusion/ckpt/surgery_3"

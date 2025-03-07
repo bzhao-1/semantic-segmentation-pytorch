@@ -17,7 +17,7 @@ MODEL:
   fc_dim: 720
 TEST:
   batch_size: 1
-  checkpoint: epoch_20.pth
+  checkpoint: epoch_19.pth
   result: ./
 TRAIN:
   batch_size_per_gpu: 2
@@ -37,5 +37,5 @@ TRAIN:
   workers: 16
 VAL:
   batch_size: 1
-  checkpoint: epoch_20.pth
+  checkpoint: epoch_19.pth
   visualize: True
