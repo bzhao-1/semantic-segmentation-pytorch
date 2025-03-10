@@ -7,10 +7,11 @@
 | Name           | Email                 |
 | -------------- | --------------------- |
 | Ben Zhao       | benzhao90@gmail.com   |
-| Khizar Qureshi | qureshik@carleton.edu |
-| Duy Nguyen     | nguyend2@carleton.edu |
-| Ntense Obono   | obonon@carleton.edu   |
-| Bem Abebayehu  | abebayehub@carleton.edu |
+| Nathaniel Li   | lin@carleton.edu      |
+| Julian Tanguma | tangumaj@carleton.edu |
+| David Toledo   | toledod@carleton.edu  |
+| Ethan Masadde(Indirectly)  | masaddee@carleton.edu |
+| Josh Meier(Indirectly)    | meierj@carleton.edu   |
 
 
 
