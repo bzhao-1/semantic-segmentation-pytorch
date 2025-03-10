@@ -24,7 +24,9 @@
 
 
 ## Description 
-This is a PyTorch implementation of semantic segmentation models on custom data from the CARLA simulator across 4 different weather scenarios. Each dataset contains 1995 total images with an 80-10-10 split for training, testing, and validation. There are 29 classes based on the semantic segmentation camera in CARLA (https://carla.readthedocs.io/en/latest/ref_sensors/#semantic-segmentation-camera). The implementation is adapted from the MIT ADE20K scene parsing dataset (http://sceneparsing.csail.mit.edu/).
+This is a PyTorch implementation of semantic segmentation models on custom data from the CARLA simulator across 4 different weather scenarios. Each dataset contains 1995 total images and our results are benchmarked from an 80-10-10 split for training, testing, and validation. There are 29 classes based on the the semantic segmentation camera in CARLA:(https://carla.readthedocs.io/en/latest/ref_sensors/#semantic-segmentation-camera). 
+The implementation is adapted from the MIT ADE20K scene parsing dataset: 
+(http://sceneparsing.csail.mit.edu/).
 
 
 ## Background
@@ -46,7 +48,58 @@ Decoder:
 - **HRNet** is a recently proposed model that retains high resolution representations throughout the model, without the traditional bottleneck design. It achieves the SOTA performance on a series of pixel labeling tasks. Please refer to [https://arxiv.org/abs/1904.04514](https://arxiv.org/abs/1904.04514) for details.
 
 
+## Instructions
+### Environment
+The code is developed under the following settings:
+- Hardware: >=1 GPU for training, >=1 GPU for testing
+- Software: Ubuntu (Version TBD), CUDA>=8.0, Python>=3.5, PyTorch>=0.4.0
+Dependencies: numpy, scipy, opencv, yacs, tqdm
 
+Step 1: Download CARLA Deterministic Data for 4 weathers and ensure that data is in a folder called new_data (1995 images per weather).:
+
+
+Step 2: cd to the main folder
+
+Step 3:
+Install Miniconda
+Setup Dependencies
+```bash
+conda create -n myenv python=python_version 
+conda activate myenv
+pip3 install torch, numpy, scipy, yacs, tqdm
+```
+
+### Training 
+Step 4:
+To train the model, first run the notebook to create an odgt for the weather scenario to be trained on: 
+```bash
+/root/scripts/mixeddatapreprocessing.ipynb
+```
+Move odgt files to new_data folder. 
+
+Step 5:
+Train our model by selecting the number of ($GPUS) and configuration file ($CFG). During training, checkpoints by default are saved in folder called ckpt.
+Our base configuration files can be found in /root/cfg. Ensure that data directories in configuration files point to where odgt files are located for training and validation. 
+Example(Train on clear day): 
+```bash
+python3 train.py --gpu 0 --cfg config/ade20k-hrnetv2-CARLADAYCLEAR.yaml
+```
+GPUS can be a specified number from 0-7 or a specific subset(0,1,3,5). 
+
+### Testing(without metrics) 
+Step 6:
+Testing without metrics can be done by setting the test image folder under ($IMGS):
+```bash
+python3 -u test.py --imgs testrandomimages/ --gpu 0 --cfg config/ade20k-mobilenetv2dilated-c1_deepsup-custom.yaml
+```
+
+### Evaluation(with metrics) 
+Step 7:
+Set flag for visualization to be True for three column outputs. From left to right(RGB Image, GT, Prediction):
+```bash
+python3 eval_multipro.py --gpus 0 --cfg config/ade20k-hrnetv2-CARLADAYCLEAR.yaml --test_set ./new_data/odgt_foggy_day
+```
+By default, you can omit $TEST_SET flag for each weather to test on own weather. You can also test on any other weather by including the flag. 
 
 ## Reference
 
