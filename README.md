@@ -1,4 +1,4 @@
-# Semantic Segmentation on CARLA Data
+# Semantic Segmentation on CARLA Data for CV4AD Carleton College Senior Thesis 
 # Adapted from MIT ADE20K dataset in PyTorch
 
 This is a PyTorch implementation of semantic segmentation models on custom data from the CARLA simulator across 4 different weather scenarios. Each dataset contains 1995 total images with an 80-10-10 split for training, testing, and validation. 
@@ -8,12 +8,6 @@ The implementation is adapted from the MIT ADE20K scene parsing dataset (http://
 ## Background of MIT ADE20K
 ADE20K is the largest open source dataset for semantic segmentation and scene parsing, released by MIT Computer Vision team. Follow the link below to find the repository for their dataset and implementations on Caffe and Torch7:
 https://github.com/CSAILVision/sceneparsing
-
-
-### ADE20K Methods on Syncronized Batch Normalization on PyTorch
-This module computes the mean and standard-deviation across all devices during training. We empirically find that a reasonable large batch size is important for segmentation. We thank [Jiayuan Mao](http://vccy.xyz/) for his kind contributions, please refer to [Synchronized-BatchNorm-PyTorch](https://github.com/vacancy/Synchronized-BatchNorm-PyTorch) for details.
-
-
 
 ### State-of-the-Art models
 - **HRNet** is a recently proposed model that retains high resolution representations throughout the model, without the traditional bottleneck design. It achieves the SOTA performance on a series of pixel labeling tasks. Please refer to [https://arxiv.org/abs/1904.04514](https://arxiv.org/abs/1904.04514) for details.
