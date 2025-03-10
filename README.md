@@ -1,21 +1,37 @@
 # Semantic Segmentation on CARLA Data for CV4AD Carleton College Senior Thesis 
 # Adapted from MIT ADE20K dataset in PyTorch
 
-This is a PyTorch implementation of semantic segmentation models on custom data from the CARLA simulator across 4 different weather scenarios. Each dataset contains 1995 total images with an 80-10-10 split for training, testing, and validation. 
-The implementation is adapted from the MIT ADE20K scene parsing dataset (http://sceneparsing.csail.mit.edu/).
+
+### Contributers
+
+| Name           | Email                 |
+| -------------- | --------------------- |
+| Ben Zhao       | benzhao90@gmail.com   |
+| Khizar Qureshi | qureshik@carleton.edu |
+| Duy Nguyen     | nguyend2@carleton.edu |
+| Ntense Obono   | obonon@carleton.edu   |
+| Bem Abebayehu  | abebayehub@carleton.edu |
 
 
-## Background of MIT ADE20K
+
+## Contents
+
+- [Description](#description)
+- [Background](#background)
+- [Instructions](#instructions)
+- [Reference](#reference)
+
+
+## Description 
+This is a PyTorch implementation of semantic segmentation models on custom data from the CARLA simulator across 4 different weather scenarios. Each dataset contains 1995 total images with an 80-10-10 split for training, testing, and validation. There are 29 classes based on the semantic segmentation camera in CARLA (https://carla.readthedocs.io/en/latest/ref_sensors/#semantic-segmentation-camera). The implementation is adapted from the MIT ADE20K scene parsing dataset (http://sceneparsing.csail.mit.edu/).
+
+
+## Background
+### ADE20k
 ADE20K is the largest open source dataset for semantic segmentation and scene parsing, released by MIT Computer Vision team. Follow the link below to find the repository for their dataset and implementations on Caffe and Torch7:
 https://github.com/CSAILVision/sceneparsing
-
-### State-of-the-Art models
-- **HRNet** is a recently proposed model that retains high resolution representations throughout the model, without the traditional bottleneck design. It achieves the SOTA performance on a series of pixel labeling tasks. Please refer to [https://arxiv.org/abs/1904.04514](https://arxiv.org/abs/1904.04514) for details.
-
-
-## Models
-
-We trained the model on CARLA data with a HRNETV2 encoder. This was adpated from the configurations provided in the ADE20K source code. 
+### Our Project
+We use semantic segmentation as a means for understanding how computer vision is affected by weather in terms of how an autonomous vehicle perceives its surroundings. We trained the model on CARLA data with a HRNETV2 encoder. This was adpated from the configurations provided in the ADE20K source code. 
 
 Encoder:
 - HRNetV2
@@ -23,6 +39,10 @@ Encoder:
 
 Decoder:
 - C1 (one convolution module)
+
+
+### State-of-the-Art models
+- **HRNet** is a recently proposed model that retains high resolution representations throughout the model, without the traditional bottleneck design. It achieves the SOTA performance on a series of pixel labeling tasks. Please refer to [https://arxiv.org/abs/1904.04514](https://arxiv.org/abs/1904.04514) for details.
 
 
 
