@@ -1,3 +1,53 @@
+# Sensor Fusion for Semantic Segmentation
+
+This is a extention of MIT's ADE20K implementations of semantic segmentation algorithms to include a variety of sensor fusion variants.
+
+The changes include a few copies of dataset.py, train.py, and eval_multipro.py with adaptations for various architectures. 
+
+dataset.py : Original implmementation from MIT.
+
+dataset_1_channel.py : Depth only dataloader. Normalization constants are configured based on empirical results from depth dataset.
+
+dataset_4_channel.py : RGBD dataloader. Includes base RGB normalization constants and our values for depth as well.
+
+train_base.py : Original implementation from MIT.
+
+train.py : Used primarily for prototyping new architures. Adjust the imported dataset module as needed to trial different implementations.
+
+train_parallel.py : Used to train mid fusion model, with two parallel encoders.
+
+eval_multipro_base.py : Original implementation from MIT.
+
+eval_multipro.py : Used for prototyping. Adjust inplanes and slicing of image data for visualization as appropriate.
+
+eval_multipro_parallel.py : Used to evaluate the mid fusion model.
+
+Model changes are included in models.py and include:
+ - Parallel encoder segmentation module (for mid fusion)
+ - SE block (not currently used in the model, but easily added)
+ - 3 layer decoder (deep supervision or not)
+ - 5 layer decoder (deep supervision or not)
+
+The HRnet implementation also has some small changes to allow for adjusting of inplanes. This is the only encoder supported by the fusion implementations.
+
+Usage:
+
+Usage varies slightly by exact version of train or eval_multipro, but for the most part follows this pattern:
+
+python3 train.py --cfg [relative path to config file] --gpus [0 for 1 gpu. not tested for multiple]
+
+python3 eval_multipro.py --cfg [relative path to config file] --gpus [0 for 1 gpu. not tested for multiple] --test_set [relative path to folder containing test.odgt.optional, overrides the test side provided in the config] 
+
+Examples for a variety of configuration files are provided in ./config. Note that some of them, such as lidar_only and random_noise either require some adjustment of the trainer and models, and are included for completeness sake. 
+
+Scripts:
+
+graphs.ipynb : result visualization
+count_class_instances.ipynb : used to explore class bias in the datasets. counts number of images which contain each class, not total instances of a class.
+interpolation_prototyping.ipynb : prototyping and visualization of depth upsampling method + work in progress on incorporating entropy into the fusion model and visualizing the feature maps.
+normalize.ipynb : used to obtain normalization constants for depth data and check that normalization is working correctly.
+stack_lidar_rgb.ipynb : protyping for early fusion (rgbd with one encoder).
+
 # Semantic Segmentation on CARLA Data
 # Adapted from MIT ADE20K dataset in PyTorch
 
